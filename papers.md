@@ -18,6 +18,9 @@ permalink: /publications/
                 {% if paper.pdf%}
                     <span class="pull-right"> <a href="{{ site.url }}/{{ paper.pdf }}"><b>[PDF]</b></a></span>
                 {% endif %}
+                {% if paper.code%}
+                    <span class="pull-right"> <a href="{{ paper.code }}"><b>[Code]</b></a></span>
+                {% endif %}
                 </div>
         {% endfor %}
     {% endfor %}

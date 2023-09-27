@@ -16,7 +16,8 @@
             "authors": "Chenning Tao, <b>Qi Zhan</b>, Xing Hu, Xin Xia",
             "venue": "30th IEEE/ACM International Conference on Program Comprehension (ICPC 2022)",
             "status": "Accepted as a Full Paper",
-            "pdf": "assets/papers/icpc-c8.pdf"
+            "pdf": "assets/papers/icpc-c8.pdf",
+            "code":"https://github.com/Chenning-Tao/C4"
         }
     ]
 }
