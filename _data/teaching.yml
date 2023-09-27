@@ -1,0 +1,18 @@
+{
+  "2023": [
+    {
+        "name": "Compiler Principle",
+        "term": "Spring"
+    },
+  ],
+  "2022": [
+    {
+        "name": "Operating System",
+        "term": "Fall"
+    },
+    {
+        "name": "System software development practice",
+        "term": "Winter"
+    }
+  ]
+}

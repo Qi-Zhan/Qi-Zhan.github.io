@@ -1,0 +1,22 @@
+{
+    "2023": [
+        {
+            "idx": "J6",
+            "title": "Survey of Open Source Software Vulnerability Awareness",
+            "authors": "<b>Qi Zhan</b>, Shengyi Pan, Xing Hu, Lingfeng Bao, Xin Xia",
+            "venue": "Journal of Software (in Chinese)",
+            "status": "Accepted",
+            "pdf": "assets/papers/jos2023vul.pdf"
+        }
+    ],
+    "2022": [
+        {
+            "idx": "C8",
+            "title": "C4: Contrastive Cross-Language Code Clone Detection",
+            "authors": "Chenning Tao, <b>Qi Zhan</b>, Xing Hu, Xin Xia",
+            "venue": "30th IEEE/ACM International Conference on Program Comprehension (ICPC 2022)",
+            "status": "Accepted as a Full Paper",
+            "pdf": "assets/papers/icpc-c8.pdf"
+        }
+    ]
+}
