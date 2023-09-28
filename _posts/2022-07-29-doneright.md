@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Linear Algebra Done Right 学习笔记"
+title: "《线性代数应该这样学》笔记"
 categories: math
 author:
 - 詹奇

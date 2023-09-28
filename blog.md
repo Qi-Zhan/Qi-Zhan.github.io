@@ -5,7 +5,7 @@ permalink: /blog/
 ---
 
 <div class="home">
-  <h3> All Posts are Written in Chinese </h3>
+  <p> All Posts are Written in Chinese </p>
     {% if site.paginate %}
       {% assign posts = paginator.posts %}
     {% else %}
