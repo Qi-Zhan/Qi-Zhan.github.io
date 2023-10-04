@@ -5,13 +5,12 @@ permalink: /blog/
 ---
 
 <div class="home">
-  <p> All Posts are Written in Chinese </p>
+  <p> All blogs are written in Chinese. </p>
     {% if site.paginate %}
       {% assign posts = paginator.posts %}
     {% else %}
       {% assign posts = site.posts %}
     {% endif %}
-  
   
     {%- if posts.size > 0 -%}
       {%- if page.list_title -%}
