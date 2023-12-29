@@ -4,7 +4,9 @@
             "title": "PS3: Precise Patch Presence Test based on Semantic Symbolic Signature",
             "authors": "<b>Qi Zhan</b>, Xing Hu, Zhiyang Li, Xin Xia, David Lo, Shanping Li",
             "venue": "46th International Conference on Software Engineering (ICSE 2024)",
-            "status": "Accepted as a Full Paper"
+            "status": "Accepted as a Full Paper",
+            "pdf": "assets/papers/icse2024ps3.pdf",
+            "code":"https://github.com/Qi-Zhan/ps3"
         }
     ],
     "2023": [
