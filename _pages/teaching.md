@@ -25,7 +25,7 @@ nav_order: 6
             <ul class="card-text font-weight-light list-group list-group-flush">
                 <li class="list-group-item">Introduction to Rust course taught by <a
                         href="https://xing-hu.github.io/">Xing Hu</a>.</li>
-                <li class="list-group-item">— We redesigned lab assignments and project requirements to better
+                <li class="list-group-item">— In 2023, we redesigned lab assignments and project requirements to better
                     accommodate the students' learning curve.
                 </li>
                 <li class="list-group-item">— <a href="https://system-programming.pages.zjusct.io/2023winter/">
@@ -46,14 +46,14 @@ nav_order: 6
                     </span>
                 </div>
             </div>
-            <h6 class="font-italic mt-2 mt-sm-0">Sprint 2023/2024: Teaching Assistant</h6>
+            <h6 class="font-italic mt-2 mt-sm-0">Spring 2023/2024: Teaching Assistant</h6>
             <ul class="card-text font-weight-light list-group list-group-flush">
                 <li class="list-group-item">Introduction to compiler course taught by Zhongxin Liu.</li>
-                <li class="list-group-item">— We redesigned project, which allows students to implement a simple
-                    compiler that can compile a subset of C language to RISC-V assembly language.
+                <li class="list-group-item">— In 2024, we redesigned course project, which allows students to implement a simple
+                    compiler that can compile a subset of C to RISC-V assembly.
                 </li>
                 <li class="list-group-item">— <a href="https://compiler.pages.zjusct.io/sp24/">
-                        Course Website</a> (required ZJU VPN)</li>
+                        Project Website</a> (required ZJU VPN)</li>
             </ul>
         </div>
     </div>
