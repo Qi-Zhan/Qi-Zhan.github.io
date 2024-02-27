@@ -1,893 +1,113 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://alshedivat.github.io/al-folio/feed.xml" rel="self" type="application/atom+xml"/><link href="https://alshedivat.github.io/al-folio/" rel="alternate" type="text/html" hreflang="en"/><updated>2024-02-11T08:55:43+00:00</updated><id>https://alshedivat.github.io/al-folio/feed.xml</id><title type="html">blank</title><subtitle>A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design. </subtitle><entry><title type="html">a post with code diff</title><link href="https://alshedivat.github.io/al-folio/blog/2024/code-diff/" rel="alternate" type="text/html" title="a post with code diff"/><published>2024-01-27T19:22:00+00:00</published><updated>2024-01-27T19:22:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/code-diff</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/code-diff/"><![CDATA[<p>You can display diff code by using the regular markdown syntax:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">diff
-</span><span class="gh">diff --git a/sample.js b/sample.js
-index 0000001..0ddf2ba
-</span><span class="gd">--- a/sample.js
-</span><span class="gi">+++ b/sample.js
-</span><span class="p">@@ -1 +1 @@</span>
-<span class="gd">-console.log("Hello World!")
-</span><span class="gi">+console.log("Hello from Diff2Html!")</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <div class="language-diff highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gh">diff --git a/sample.js b/sample.js
-index 0000001..0ddf2ba
-</span><span class="gd">--- a/sample.js
-</span><span class="gi">+++ b/sample.js
-</span><span class="p">@@ -1 +1 @@</span>
-<span class="gd">-console.log("Hello World!")
-</span><span class="gi">+console.log("Hello from Diff2Html!")
-</span></code></pre></div></div> <p>But this is difficult to read, specially if you have a large diff. You can use <a href="https://diff2html.xyz/">diff2html</a> to display a more readable version of the diff. For this, just use <code class="language-plaintext highlighter-rouge">diff2html</code> instead of <code class="language-plaintext highlighter-rouge">diff</code> for the code block language:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">diff2html
-</span><span class="sb">diff --git a/sample.js b/sample.js
-index 0000001..0ddf2ba
---- a/sample.js
-+++ b/sample.js
-@@ -1 +1 @@
--console.log("Hello World!")
-+console.log("Hello from Diff2Html!")</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>If we use a longer example, for example <a href="https://github.com/rtfpessoa/diff2html/commit/c2c253d3e3f8b8b267f551e659f72b44ca2ac927">this commit from diff2html</a>, it will generate the following output:</p> <pre><code class="language-diff2html">From 2aaae31cc2a37bfff83430c2c914b140bee59b6a Mon Sep 17 00:00:00 2001
-From: Rodrigo Fernandes &lt;rtfrodrigo@gmail.com&gt;
-Date: Sun, 9 Oct 2016 16:41:54 +0100
-Subject: [PATCH 1/2] Initial template override support
-
----
- scripts/hulk.js                    |  4 ++--
- src/diff2html.js                   |  3 +--
- src/file-list-printer.js           | 11 ++++++++---
- src/hoganjs-utils.js               | 29 +++++++++++++++++------------
- src/html-printer.js                |  6 ++++++
- src/line-by-line-printer.js        |  6 +++++-
- src/side-by-side-printer.js        |  6 +++++-
- test/file-list-printer-tests.js    |  2 +-
- test/hogan-cache-tests.js          | 18 +++++++++++++++---
- test/line-by-line-tests.js         |  3 +--
- test/side-by-side-printer-tests.js |  3 +--
- 11 files changed, 62 insertions(+), 29 deletions(-)
-
-diff --git a/scripts/hulk.js b/scripts/hulk.js
-index 5a793c18..a4b1a4d5 100755
---- a/scripts/hulk.js
-+++ b/scripts/hulk.js
-@@ -173,11 +173,11 @@ function namespace(name) {
- // write a template foreach file that matches template extension
- templates = extractFiles(options.argv.remain)
-   .map(function(file) {
--    var openedFile = fs.readFileSync(file, 'utf-8');
-+    var openedFile = fs.readFileSync(file, 'utf-8').trim();
-     var name;
-     if (!openedFile) return;
-     name = namespace(path.basename(file).replace(/\..*$/, ''));
--    openedFile = removeByteOrderMark(openedFile.trim());
-+    openedFile = removeByteOrderMark(openedFile);
-     openedFile = wrap(file, name, openedFile);
-     if (!options.outputdir) return openedFile;
-     fs.writeFileSync(path.join(options.outputdir, name + '.js')
-diff --git a/src/diff2html.js b/src/diff2html.js
-index 21b0119e..64e138f5 100644
---- a/src/diff2html.js
-+++ b/src/diff2html.js
-@@ -7,7 +7,6 @@
-
- (function() {
-   var diffParser = require('./diff-parser.js').DiffParser;
--  var fileLister = require('./file-list-printer.js').FileListPrinter;
-   var htmlPrinter = require('./html-printer.js').HtmlPrinter;
-
-   function Diff2Html() {
-@@ -43,7 +42,7 @@
-
-     var fileList = '';
-     if (configOrEmpty.showFiles === true) {
--      fileList = fileLister.generateFileList(diffJson, configOrEmpty);
-+      fileList = htmlPrinter.generateFileListSummary(diffJson, configOrEmpty);
-     }
-
-     var diffOutput = '';
-diff --git a/src/file-list-printer.js b/src/file-list-printer.js
-index e408d9b2..1e0a2c61 100644
---- a/src/file-list-printer.js
-+++ b/src/file-list-printer.js
-@@ -8,11 +8,16 @@
- (function() {
-   var printerUtils = require('./printer-utils.js').PrinterUtils;
-
--  var hoganUtils = require('./hoganjs-utils.js').HoganJsUtils;
-+  var hoganUtils;
-+
-   var baseTemplatesPath = 'file-summary';
-   var iconsBaseTemplatesPath = 'icon';
-
--  function FileListPrinter() {
-+  function FileListPrinter(config) {
-+    this.config = config;
-+
-+    var HoganJsUtils = require('./hoganjs-utils.js').HoganJsUtils;
-+    hoganUtils = new HoganJsUtils(config);
-   }
-
-   FileListPrinter.prototype.generateFileList = function(diffFiles) {
-@@ -38,5 +43,5 @@
-     });
-   };
-
--  module.exports.FileListPrinter = new FileListPrinter();
-+  module.exports.FileListPrinter = FileListPrinter;
- })();
-diff --git a/src/hoganjs-utils.js b/src/hoganjs-utils.js
-index 9949e5fa..0dda08d7 100644
---- a/src/hoganjs-utils.js
-+++ b/src/hoganjs-utils.js
-@@ -8,18 +8,19 @@
- (function() {
-   var fs = require('fs');
-   var path = require('path');
--
-   var hogan = require('hogan.js');
-
-   var hoganTemplates = require('./templates/diff2html-templates.js');
-
--  var templatesPath = path.resolve(__dirname, 'templates');
-+  var extraTemplates;
-
--  function HoganJsUtils() {
-+  function HoganJsUtils(configuration) {
-+    this.config = configuration || {};
-+    extraTemplates = this.config.templates || {};
-   }
-
--  HoganJsUtils.prototype.render = function(namespace, view, params, configuration) {
--    var template = this.template(namespace, view, configuration);
-+  HoganJsUtils.prototype.render = function(namespace, view, params) {
-+    var template = this.template(namespace, view);
-     if (template) {
-       return template.render(params);
-     }
-@@ -27,17 +28,16 @@
-     return null;
-   };
-
--  HoganJsUtils.prototype.template = function(namespace, view, configuration) {
--    var config = configuration || {};
-+  HoganJsUtils.prototype.template = function(namespace, view) {
-     var templateKey = this._templateKey(namespace, view);
-
--    return this._getTemplate(templateKey, config);
-+    return this._getTemplate(templateKey);
-   };
-
--  HoganJsUtils.prototype._getTemplate = function(templateKey, config) {
-+  HoganJsUtils.prototype._getTemplate = function(templateKey) {
-     var template;
-
--    if (!config.noCache) {
-+    if (!this.config.noCache) {
-       template = this._readFromCache(templateKey);
-     }
-
-@@ -53,6 +53,7 @@
-
-     try {
-       if (fs.readFileSync) {
-+        var templatesPath = path.resolve(__dirname, 'templates');
-         var templatePath = path.join(templatesPath, templateKey);
-         var templateContent = fs.readFileSync(templatePath + '.mustache', 'utf8');
-         template = hogan.compile(templateContent);
-@@ -66,12 +67,16 @@
-   };
-
-   HoganJsUtils.prototype._readFromCache = function(templateKey) {
--    return hoganTemplates[templateKey];
-+    return extraTemplates[templateKey] || hoganTemplates[templateKey];
-   };
-
-   HoganJsUtils.prototype._templateKey = function(namespace, view) {
-     return namespace + '-' + view;
-   };
-
--  module.exports.HoganJsUtils = new HoganJsUtils();
-+  HoganJsUtils.prototype.compile = function(templateStr) {
-+    return hogan.compile(templateStr);
-+  };
-+
-+  module.exports.HoganJsUtils = HoganJsUtils;
- })();
-diff --git a/src/html-printer.js b/src/html-printer.js
-index 585d5b66..13f83047 100644
---- a/src/html-printer.js
-+++ b/src/html-printer.js
-@@ -8,6 +8,7 @@
- (function() {
-   var LineByLinePrinter = require('./line-by-line-printer.js').LineByLinePrinter;
-   var SideBySidePrinter = require('./side-by-side-printer.js').SideBySidePrinter;
-+  var FileListPrinter = require('./file-list-printer.js').FileListPrinter;
-
-   function HtmlPrinter() {
-   }
-@@ -22,5 +23,10 @@
-     return sideBySidePrinter.generateSideBySideJsonHtml(diffFiles);
-   };
-
-+  HtmlPrinter.prototype.generateFileListSummary = function(diffJson, config) {
-+    var fileListPrinter = new FileListPrinter(config);
-+    return fileListPrinter.generateFileList(diffJson);
-+  };
-+
-   module.exports.HtmlPrinter = new HtmlPrinter();
- })();
-diff --git a/src/line-by-line-printer.js b/src/line-by-line-printer.js
-index b07eb53c..d230bedd 100644
---- a/src/line-by-line-printer.js
-+++ b/src/line-by-line-printer.js
-@@ -11,7 +11,8 @@
-   var utils = require('./utils.js').Utils;
-   var Rematch = require('./rematch.js').Rematch;
-
--  var hoganUtils = require('./hoganjs-utils.js').HoganJsUtils;
-+  var hoganUtils;
-+
-   var genericTemplatesPath = 'generic';
-   var baseTemplatesPath = 'line-by-line';
-   var iconsBaseTemplatesPath = 'icon';
-@@ -19,6 +20,9 @@
-
-   function LineByLinePrinter(config) {
-     this.config = config;
-+
-+    var HoganJsUtils = require('./hoganjs-utils.js').HoganJsUtils;
-+    hoganUtils = new HoganJsUtils(config);
-   }
-
-   LineByLinePrinter.prototype.makeFileDiffHtml = function(file, diffs) {
-diff --git a/src/side-by-side-printer.js b/src/side-by-side-printer.js
-index bbf1dc8d..5e3033b3 100644
---- a/src/side-by-side-printer.js
-+++ b/src/side-by-side-printer.js
-@@ -11,7 +11,8 @@
-   var utils = require('./utils.js').Utils;
-   var Rematch = require('./rematch.js').Rematch;
-
--  var hoganUtils = require('./hoganjs-utils.js').HoganJsUtils;
-+  var hoganUtils;
-+
-   var genericTemplatesPath = 'generic';
-   var baseTemplatesPath = 'side-by-side';
-   var iconsBaseTemplatesPath = 'icon';
-@@ -26,6 +27,9 @@
-
-   function SideBySidePrinter(config) {
-     this.config = config;
-+
-+    var HoganJsUtils = require('./hoganjs-utils.js').HoganJsUtils;
-+    hoganUtils = new HoganJsUtils(config);
-   }
-
-   SideBySidePrinter.prototype.makeDiffHtml = function(file, diffs) {
-diff --git a/test/file-list-printer-tests.js b/test/file-list-printer-tests.js
-index a502a46f..60ea3208 100644
---- a/test/file-list-printer-tests.js
-+++ b/test/file-list-printer-tests.js
-@@ -1,6 +1,6 @@
- var assert = require('assert');
-
--var fileListPrinter = require('../src/file-list-printer.js').FileListPrinter;
-+var fileListPrinter = new (require('../src/file-list-printer.js').FileListPrinter)();
-
- describe('FileListPrinter', function() {
-   describe('generateFileList', function() {
-diff --git a/test/hogan-cache-tests.js b/test/hogan-cache-tests.js
-index 190bf6f8..3bb754ac 100644
---- a/test/hogan-cache-tests.js
-+++ b/test/hogan-cache-tests.js
-@@ -1,6 +1,6 @@
- var assert = require('assert');
-
--var HoganJsUtils = require('../src/hoganjs-utils.js').HoganJsUtils;
-+var HoganJsUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)();
- var diffParser = require('../src/diff-parser.js').DiffParser;
-
- describe('HoganJsUtils', function() {
-@@ -21,16 +21,28 @@ describe('HoganJsUtils', function() {
-       });
-       assert.equal(emptyDiffHtml, result);
-     });
-+
-     it('should render view without cache', function() {
-       var result = HoganJsUtils.render('generic', 'empty-diff', {
-         contentClass: 'd2h-code-line',
-         diffParser: diffParser
-       }, {noCache: true});
--      assert.equal(emptyDiffHtml + '\n', result);
-+      assert.equal(emptyDiffHtml, result);
-     });
-+
-     it('should return null if template is missing', function() {
--      var result = HoganJsUtils.render('generic', 'missing-template', {}, {noCache: true});
-+      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)({noCache: true});
-+      var result = hoganUtils.render('generic', 'missing-template', {});
-       assert.equal(null, result);
-     });
-+
-+    it('should allow templates to be overridden', function() {
-+      var emptyDiffTemplate = HoganJsUtils.compile('&lt;p&gt;&lt;/p&gt;');
-+
-+      var config = {templates: {'generic-empty-diff': emptyDiffTemplate}};
-+      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)(config);
-+      var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
-+      assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
-+    });
-   });
- });
-diff --git a/test/line-by-line-tests.js b/test/line-by-line-tests.js
-index 1cd92073..8869b3df 100644
---- a/test/line-by-line-tests.js
-+++ b/test/line-by-line-tests.js
-@@ -14,7 +14,7 @@ describe('LineByLinePrinter', function() {
-         '            File without changes\n' +
-         '        &lt;/div&gt;\n' +
-         '    &lt;/td&gt;\n' +
--        '&lt;/tr&gt;\n';
-+        '&lt;/tr&gt;';
-
-       assert.equal(expected, fileHtml);
-     });
-@@ -422,7 +422,6 @@ describe('LineByLinePrinter', function() {
-         '        &lt;/div&gt;\n' +
-         '    &lt;/td&gt;\n' +
-         '&lt;/tr&gt;\n' +
--        '\n' +
-         '                &lt;/tbody&gt;\n' +
-         '            &lt;/table&gt;\n' +
-         '        &lt;/div&gt;\n' +
-diff --git a/test/side-by-side-printer-tests.js b/test/side-by-side-printer-tests.js
-index 76625f8e..771daaa5 100644
---- a/test/side-by-side-printer-tests.js
-+++ b/test/side-by-side-printer-tests.js
-@@ -14,7 +14,7 @@ describe('SideBySidePrinter', function() {
-         '            File without changes\n' +
-         '        &lt;/div&gt;\n' +
-         '    &lt;/td&gt;\n' +
--        '&lt;/tr&gt;\n';
-+        '&lt;/tr&gt;';
-
-       assert.equal(expectedRight, fileHtml.right);
-       assert.equal(expectedLeft, fileHtml.left);
-@@ -324,7 +324,6 @@ describe('SideBySidePrinter', function() {
-         '        &lt;/div&gt;\n' +
-         '    &lt;/td&gt;\n' +
-         '&lt;/tr&gt;\n' +
--        '\n' +
-         '                    &lt;/tbody&gt;\n' +
-         '                &lt;/table&gt;\n' +
-         '            &lt;/div&gt;\n' +
-
-From f3cadb96677d0eb82fc2752dc3ffbf35ca9b5bdb Mon Sep 17 00:00:00 2001
-From: Rodrigo Fernandes &lt;rtfrodrigo@gmail.com&gt;
-Date: Sat, 15 Oct 2016 13:21:22 +0100
-Subject: [PATCH 2/2] Allow uncompiled templates
-
----
- README.md                 |  3 +++
- src/hoganjs-utils.js      |  7 +++++++
- test/hogan-cache-tests.js | 24 +++++++++++++++++++++++-
- 3 files changed, 33 insertions(+), 1 deletion(-)
-
-diff --git a/README.md b/README.md
-index 132c8a28..46909f25 100644
---- a/README.md
-+++ b/README.md
-@@ -98,6 +98,9 @@ The HTML output accepts a Javascript object with configuration. Possible options
-   - `synchronisedScroll`: scroll both panes in side-by-side mode: `true` or `false`, default is `false`
-   - `matchWordsThreshold`: similarity threshold for word matching, default is 0.25
-   - `matchingMaxComparisons`: perform at most this much comparisons for line matching a block of changes, default is `2500`
-+  - `templates`: object with previously compiled templates to replace parts of the html
-+  - `rawTemplates`: object with raw not compiled templates to replace parts of the html
-+  &gt; For more information regarding the possible templates look into [src/templates](https://github.com/rtfpessoa/diff2html/tree/master/src/templates)
-
- ## Diff2HtmlUI Helper
-
-diff --git a/src/hoganjs-utils.js b/src/hoganjs-utils.js
-index 0dda08d7..b2e9c275 100644
---- a/src/hoganjs-utils.js
-+++ b/src/hoganjs-utils.js
-@@ -17,6 +17,13 @@
-   function HoganJsUtils(configuration) {
-     this.config = configuration || {};
-     extraTemplates = this.config.templates || {};
-+
-+    var rawTemplates = this.config.rawTemplates || {};
-+    for (var templateName in rawTemplates) {
-+      if (rawTemplates.hasOwnProperty(templateName)) {
-+        if (!extraTemplates[templateName]) extraTemplates[templateName] = this.compile(rawTemplates[templateName]);
-+      }
-+    }
-   }
-
-   HoganJsUtils.prototype.render = function(namespace, view, params) {
-diff --git a/test/hogan-cache-tests.js b/test/hogan-cache-tests.js
-index 3bb754ac..a34839c0 100644
---- a/test/hogan-cache-tests.js
-+++ b/test/hogan-cache-tests.js
-@@ -36,7 +36,7 @@ describe('HoganJsUtils', function() {
-       assert.equal(null, result);
-     });
-
--    it('should allow templates to be overridden', function() {
-+    it('should allow templates to be overridden with compiled templates', function() {
-       var emptyDiffTemplate = HoganJsUtils.compile('&lt;p&gt;&lt;/p&gt;');
-
-       var config = {templates: {'generic-empty-diff': emptyDiffTemplate}};
-@@ -44,5 +44,27 @@ describe('HoganJsUtils', function() {
-       var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
-       assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
-     });
-+
-+    it('should allow templates to be overridden with uncompiled templates', function() {
-+      var emptyDiffTemplate = '&lt;p&gt;&lt;/p&gt;';
-+
-+      var config = {rawTemplates: {'generic-empty-diff': emptyDiffTemplate}};
-+      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)(config);
-+      var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
-+      assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
-+    });
-+
-+    it('should allow templates to be overridden giving priority to compiled templates', function() {
-+      var emptyDiffTemplate = HoganJsUtils.compile('&lt;p&gt;&lt;/p&gt;');
-+      var emptyDiffTemplateUncompiled = '&lt;p&gt;Not used!&lt;/p&gt;';
-+
-+      var config = {
-+        templates: {'generic-empty-diff': emptyDiffTemplate},
-+        rawTemplates: {'generic-empty-diff': emptyDiffTemplateUncompiled}
-+      };
-+      var hoganUtils = new (require('../src/hoganjs-utils.js').HoganJsUtils)(config);
-+      var result = hoganUtils.render('generic', 'empty-diff', {myName: 'Rodrigo Fernandes'});
-+      assert.equal('&lt;p&gt;Rodrigo Fernandes&lt;/p&gt;', result);
-+    });
-   });
- });
-</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="code"/><summary type="html"><![CDATA[this is how you can display code diffs]]></summary></entry><entry><title type="html">a post with advanced image components</title><link href="https://alshedivat.github.io/al-folio/blog/2024/advanced-images/" rel="alternate" type="text/html" title="a post with advanced image components"/><published>2024-01-27T11:46:00+00:00</published><updated>2024-01-27T11:46:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/advanced-images</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/advanced-images/"><![CDATA[<p>This is an example post with advanced image components.</p> <h2 id="image-slider">Image Slider</h2> <p>This is a simple image slider. It uses the <a href="https://swiperjs.com/">Swiper</a> library. Check the <a href="https://swiperjs.com/demos">examples page</a> for more information of what you can achieve with it.</p> <swiper-container keyboard="true" navigation="true" pagination="true" pagination-clickable="true" pagination-dynamic-bullets="true" rewind="true"> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/9-480.webp 480w,/al-folio/assets/img/9-800.webp 800w,/al-folio/assets/img/9-1400.webp 1400w," sizes="95vw" type="image/webp"/> <img src="/al-folio/assets/img/9.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/7-480.webp 480w,/al-folio/assets/img/7-800.webp 800w,/al-folio/assets/img/7-1400.webp 1400w," sizes="95vw" type="image/webp"/> <img src="/al-folio/assets/img/7.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/8-480.webp 480w,/al-folio/assets/img/8-800.webp 800w,/al-folio/assets/img/8-1400.webp 1400w," sizes="95vw" type="image/webp"/> <img src="/al-folio/assets/img/8.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/10-480.webp 480w,/al-folio/assets/img/10-800.webp 800w,/al-folio/assets/img/10-1400.webp 1400w," sizes="95vw" type="image/webp"/> <img src="/al-folio/assets/img/10.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> <swiper-slide> <figure> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/12-480.webp 480w,/al-folio/assets/img/12-800.webp 800w,/al-folio/assets/img/12-1400.webp 1400w," sizes="95vw" type="image/webp"/> <img src="/al-folio/assets/img/12.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </swiper-slide> </swiper-container> <h2 id="image-comparison-slider">Image Comparison Slider</h2> <p>This is a simple image comparison slider. It uses the <a href="https://img-comparison-slider.sneas.io/">img-comparison-slider</a> library. Check the <a href="https://img-comparison-slider.sneas.io/examples.html">examples page</a> for more information of what you can achieve with it.</p> <img-comparison-slider> <figure slot="first"> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/prof_pic-480.webp 480w,/al-folio/assets/img/prof_pic-800.webp 800w,/al-folio/assets/img/prof_pic-1400.webp 1400w," sizes="95vw" type="image/webp"/> <img src="/al-folio/assets/img/prof_pic.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> <figure slot="second"> <picture> <source class="responsive-img-srcset" srcset="/al-folio/assets/img/prof_pic_color-480.webp 480w,/al-folio/assets/img/prof_pic_color-800.webp 800w,/al-folio/assets/img/prof_pic_color-1400.webp 1400w," sizes="95vw" type="image/webp"/> <img src="/al-folio/assets/img/prof_pic_color.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" onerror="this.onerror=null; $('.responsive-img-srcset').remove();"/> </picture> </figure> </img-comparison-slider>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="images"/><summary type="html"><![CDATA[this is what advanced image components could look like]]></summary></entry><entry><title type="html">a post with vega lite</title><link href="https://alshedivat.github.io/al-folio/blog/2024/vega-lite/" rel="alternate" type="text/html" title="a post with vega lite"/><published>2024-01-27T00:20:00+00:00</published><updated>2024-01-27T00:20:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/vega-lite</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/vega-lite/"><![CDATA[<p>This is an example post with some <a href="https://vega.github.io/vega-lite/">vega lite</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">vega_lite
-</span><span class="sb">{
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "description": "A dot plot showing each movie in the database, and the difference from the average movie rating. The display is sorted by year to visualize everything in sequential order. The graph is for all Movies before 2019.",
-  "data": {
-    "url": "https://raw.githubusercontent.com/vega/vega/main/docs/data/movies.json"
-  },
-  "transform": [
-    {"filter": "datum['IMDB Rating'] != null"},
-    {"filter": {"timeUnit": "year", "field": "Release Date", "range": [null, 2019]}},
-    {
-      "joinaggregate": [{
-        "op": "mean",
-        "field": "IMDB Rating",
-        "as": "AverageRating"
-      }]
-    },
-    {
-      "calculate": "datum['IMDB Rating'] - datum.AverageRating",
-      "as": "RatingDelta"
-    }
-  ],
-  "mark": "point",
-  "encoding": {
-    "x": {
-      "field": "Release Date",
-      "type": "temporal"
-    },
-    "y": {
-      "field": "RatingDelta",
-      "type": "quantitative",
-      "title": "Rating Delta"
-    },
-    "color": {
-      "field": "RatingDelta",
-      "type": "quantitative",
-      "scale": {"domainMid": 0},
-      "title": "Rating Delta"
-    }
-  }
-}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-vega_lite">{
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "description": "A dot plot showing each movie in the database, and the difference from the average movie rating. The display is sorted by year to visualize everything in sequential order. The graph is for all Movies before 2019.",
-  "data": {
-    "url": "https://raw.githubusercontent.com/vega/vega/main/docs/data/movies.json"
-  },
-  "transform": [
-    {"filter": "datum['IMDB Rating'] != null"},
-    {"filter": {"timeUnit": "year", "field": "Release Date", "range": [null, 2019]}},
-    {
-      "joinaggregate": [{
-        "op": "mean",
-        "field": "IMDB Rating",
-        "as": "AverageRating"
-      }]
-    },
-    {
-      "calculate": "datum['IMDB Rating'] - datum.AverageRating",
-      "as": "RatingDelta"
-    }
-  ],
-  "mark": "point",
-  "encoding": {
-    "x": {
-      "field": "Release Date",
-      "type": "temporal"
-    },
-    "y": {
-      "field": "RatingDelta",
-      "type": "quantitative",
-      "title": "Rating Delta"
-    },
-    "color": {
-      "field": "RatingDelta",
-      "type": "quantitative",
-      "scale": {"domainMid": 0},
-      "title": "Rating Delta"
-    }
-  }
-}
-</code></pre> <p>This plot supports both light and dark themes.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included vega lite code could look like]]></summary></entry><entry><title type="html">a post with geojson</title><link href="https://alshedivat.github.io/al-folio/blog/2024/geojson-map/" rel="alternate" type="text/html" title="a post with geojson"/><published>2024-01-26T17:57:00+00:00</published><updated>2024-01-26T17:57:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/geojson-map</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/geojson-map/"><![CDATA[<p>This is an example post with some <a href="https://geojson.org/">geojson</a> code. The support is provided thanks to <a href="https://leafletjs.com/">Leaflet</a>. To create your own visualization, go to <a href="https://geojson.io/">geojson.io</a>.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">geojson
-</span><span class="sb">{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "coordinates": [
-          [
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ]
-          ]
-        ],
-        "type": "Polygon"
-      }
-    }
-  ]
-}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-geojson">{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "coordinates": [
-          [
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -3.162613728707967
-            ],
-            [
-              -59.820894493858034,
-              -2.904625022183211
-            ],
-            [
-              -60.11363029935569,
-              -2.904625022183211
-            ]
-          ]
-        ],
-        "type": "Polygon"
-      }
-    }
-  ]
-}
-</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><category term="maps"/><summary type="html"><![CDATA[this is what included geojson code could look like]]></summary></entry><entry><title type="html">a post with echarts</title><link href="https://alshedivat.github.io/al-folio/blog/2024/echarts/" rel="alternate" type="text/html" title="a post with echarts"/><published>2024-01-26T16:03:00+00:00</published><updated>2024-01-26T16:03:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/echarts</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/echarts/"><![CDATA[<p>This is an example post with some <a href="https://echarts.apache.org/">echarts</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">echarts
-</span><span class="sb">{
-  "title": {
-    "text": "ECharts Getting Started Example"
-  },
-  "responsive": true,
-  "tooltip": {},
-  "legend": {
-    "top": "30px",
-    "data": ["sales"]
-  },
-  "xAxis": {
-    "data": ["Shirts", "Cardigans", "Chiffons", "Pants", "Heels", "Socks"]
-  },
-  "yAxis": {},
-  "series": [
-    {
-      "name": "sales",
-      "type": "bar",
-      "data": [5, 20, 36, 10, 10, 20]
-    }
-  ]
-}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-echarts">{
-  "title": {
-    "text": "ECharts Getting Started Example"
-  },
-  "responsive": true,
-  "tooltip": {},
-  "legend": {
-    "top": "30px",
-    "data": ["sales"]
-  },
-  "xAxis": {
-    "data": ["Shirts", "Cardigans", "Chiffons", "Pants", "Heels", "Socks"]
-  },
-  "yAxis": {},
-  "series": [
-    {
-      "name": "sales",
-      "type": "bar",
-      "data": [5, 20, 36, 10, 10, 20]
-    }
-  ]
-}
-</code></pre> <p>Note that this library offer support for both light and dark themes. You can switch between them using the theme switcher in the top right corner of the page.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included echarts code could look like]]></summary></entry><entry><title type="html">a post with chart.js</title><link href="https://alshedivat.github.io/al-folio/blog/2024/chartjs/" rel="alternate" type="text/html" title="a post with chart.js"/><published>2024-01-26T01:04:00+00:00</published><updated>2024-01-26T01:04:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2024/chartjs</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2024/chartjs/"><![CDATA[<p>This is an example post with some <a href="https://www.chartjs.org/">chart.js</a> code.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">chartjs
-</span><span class="sb">{
-  "type": "line",
-  "data": {
-    "labels": [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July"
-    ],
-    "datasets": [
-      {
-        "label": "# of bugs",
-        "fill": false,
-        "lineTension": 0.1,
-        "backgroundColor": "rgba(75,192,192,0.4)",
-        "borderColor": "rgba(75,192,192,1)",
-        "borderCapStyle": "butt",
-        "borderDash": [],
-        "borderDashOffset": 0,
-        "borderJoinStyle": "miter",
-        "pointBorderColor": "rgba(75,192,192,1)",
-        "pointBackgroundColor": "#fff",
-        "pointBorderWidth": 1,
-        "pointHoverRadius": 5,
-        "pointHoverBackgroundColor": "rgba(75,192,192,1)",
-        "pointHoverBorderColor": "rgba(220,220,220,1)",
-        "pointHoverBorderWidth": 2,
-        "pointRadius": 1,
-        "pointHitRadius": 10,
-        "data": [
-          65,
-          59,
-          80,
-          81,
-          56,
-          55,
-          40
-        ],
-        "spanGaps": false
-      }
-    ]
-  },
-  "options": {}
-}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>This is how it looks like:</p> <pre><code class="language-chartjs">{
-  "type": "line",
-  "data": {
-    "labels": [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July"
-    ],
-    "datasets": [
-      {
-        "label": "# of bugs",
-        "fill": false,
-        "lineTension": 0.1,
-        "backgroundColor": "rgba(75,192,192,0.4)",
-        "borderColor": "rgba(75,192,192,1)",
-        "borderCapStyle": "butt",
-        "borderDash": [],
-        "borderDashOffset": 0,
-        "borderJoinStyle": "miter",
-        "pointBorderColor": "rgba(75,192,192,1)",
-        "pointBackgroundColor": "#fff",
-        "pointBorderWidth": 1,
-        "pointHoverRadius": 5,
-        "pointHoverBackgroundColor": "rgba(75,192,192,1)",
-        "pointHoverBorderColor": "rgba(220,220,220,1)",
-        "pointHoverBorderWidth": 2,
-        "pointRadius": 1,
-        "pointHitRadius": 10,
-        "data": [
-          65,
-          59,
-          80,
-          81,
-          56,
-          55,
-          40
-        ],
-        "spanGaps": false
-      }
-    ]
-  },
-  "options": {}
-}
-</code></pre> <p>Also another example chart.</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">chartjs
-</span><span class="sb">{
-  "type": "doughnut",
-  "data": {
-    "labels": [
-      "Red",
-      "Blue",
-      "Yellow"
-    ],
-    "datasets": [
-      {
-        "data": [
-          300,
-          50,
-          100
-        ],
-        "backgroundColor": [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56"
-        ],
-        "hoverBackgroundColor": [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56"
-        ]
-      }
-    ]
-  },
-  "options": {}
-}</span>
-<span class="p">```</span>
-</code></pre></div></div> <p>Which generates:</p> <pre><code class="language-chartjs">{
-  "type": "doughnut",
-  "data": {
-    "labels": [
-      "Red",
-      "Blue",
-      "Yellow"
-    ],
-    "datasets": [
-      {
-        "data": [
-          300,
-          50,
-          100
-        ],
-        "backgroundColor": [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56"
-        ],
-        "hoverBackgroundColor": [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56"
-        ]
-      }
-    ]
-  },
-  "options": {}
-}
-</code></pre>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="charts"/><summary type="html"><![CDATA[this is what included chart.js code could look like]]></summary></entry><entry><title type="html">a post with TikZJax</title><link href="https://alshedivat.github.io/al-folio/blog/2023/tikzjax/" rel="alternate" type="text/html" title="a post with TikZJax"/><published>2023-12-12T22:25:00+00:00</published><updated>2023-12-12T22:25:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2023/tikzjax</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2023/tikzjax/"><![CDATA[<p>This is an example post with TikZ code. TikZJax converts script tags (containing TikZ code) into SVGs.</p> <script type="text/tikz">
-\begin{tikzpicture}
-    \draw[red,fill=black!60!red] (0,0) circle [radius=1.5];
-    \draw[green,fill=black!60!green] (0,0) circle [x radius=1.5cm, y radius=10mm];
-    \draw[blue,fill=black!60!blue] (0,0) circle [x radius=1cm, y radius=5mm, rotate=30];
-\end{tikzpicture}
-</script>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="diagrams"/><summary type="html"><![CDATA[this is what included TikZ code could look like]]></summary></entry><entry><title type="html">a post with bibliography</title><link href="https://alshedivat.github.io/al-folio/blog/2023/post-bibliography/" rel="alternate" type="text/html" title="a post with bibliography"/><published>2023-07-12T13:56:00+00:00</published><updated>2023-07-12T13:56:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2023/post-bibliography</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2023/post-bibliography/"><![CDATA[<p>This post shows how to add bibliography to simple blog posts. We support every citation style that <a href="https://github.com/inukshuk/jekyll-scholar">jekyll-scholar</a> does. That means simple citation like <a class="citation" href="#einstein1950meaning">(Einstein &amp; Taub, 1950)</a>, multiple citations like <a class="citation" href="#einstein1950meaning">(Einstein &amp; Taub, 1950; Einstein, 1905)</a>, long references like <span id="einstein1905movement">Einstein, A. (1905). Un the movement of small particles suspended in statiunary liquids required by the molecular-kinetic theory 0f heat. <i>Ann. Phys.</i>, <i>17</i>, 549–560.</span> or also quotes:</p> <blockquote><p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,<br/>sed do eiusmod tempor.</p><p>Lorem ipsum dolor sit amet, consectetur adipisicing.</p><cite><a class="citation" href="#einstein1905electrodynamics">(Einstein, 1905)</a></cite></blockquote> <p>If you would like something more academic, check the <a href="/al-folio/blog/2021/distill/">distill style post</a>.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="bib"/><summary type="html"><![CDATA[an example of a blog post with bibliography]]></summary></entry><entry><title type="html">a post with jupyter notebook</title><link href="https://alshedivat.github.io/al-folio/blog/2023/jupyter-notebook/" rel="alternate" type="text/html" title="a post with jupyter notebook"/><published>2023-07-04T12:57:00+00:00</published><updated>2023-07-04T12:57:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2023/jupyter-notebook</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2023/jupyter-notebook/"><![CDATA[<p>To include a jupyter notebook in a post, you can use the following code:</p> <div class="language-liquid highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{::nomarkdown}
-<span class="cp">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="nv">jupyter_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'assets/jupyter/blog.ipynb'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="nf">relative_url</span><span class="w"> </span><span class="cp">%}</span>
-<span class="cp">{%</span><span class="w"> </span><span class="nt">capture</span><span class="w"> </span><span class="nv">notebook_exists</span><span class="w"> </span><span class="cp">%}{%</span><span class="w"> </span><span class="nt">file_exists</span><span class="w"> </span>assets/jupyter/blog.ipynb<span class="w"> </span><span class="cp">%}{%</span><span class="w"> </span><span class="nt">endcapture</span><span class="w"> </span><span class="cp">%}</span>
-<span class="cp">{%</span><span class="w"> </span><span class="nt">if</span><span class="w"> </span><span class="nv">notebook_exists</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'true'</span><span class="w"> </span><span class="cp">%}</span>
-  <span class="cp">{%</span><span class="w"> </span><span class="nt">jupyter_notebook</span><span class="w"> </span><span class="nv">jupyter_path</span><span class="w"> </span><span class="cp">%}</span>
-<span class="cp">{%</span><span class="w"> </span><span class="nt">else</span><span class="w"> </span><span class="cp">%}</span>
-  &lt;p&gt;Sorry, the notebook you are looking for does not exist.&lt;/p&gt;
-<span class="cp">{%</span><span class="w"> </span><span class="nt">endif</span><span class="w"> </span><span class="cp">%}</span>
-{:/nomarkdown}
-</code></pre></div></div> <p>Let’s break it down: this is possible thanks to <a href="https://github.com/red-data-tools/jekyll-jupyter-notebook">Jekyll Jupyter Notebook plugin</a> that allows you to embed jupyter notebooks in your posts. It basically calls <a href="https://nbconvert.readthedocs.io/en/latest/usage.html#convert-html"><code class="language-plaintext highlighter-rouge">jupyter nbconvert --to html</code></a> to convert the notebook to an html page and then includes it in the post. Since <a href="https://jekyllrb.com/docs/configuration/markdown/">Kramdown</a> is the default Markdown renderer for Jekyll, we need to surround the call to the plugin with the <a href="https://kramdown.gettalong.org/syntax.html#extensions">::nomarkdown</a> tag so that it stops processing this part with Kramdown and outputs the content as-is.</p> <p>The plugin takes as input the path to the notebook, but it assumes the file exists. If you want to check if the file exists before calling the plugin, you can use the <code class="language-plaintext highlighter-rouge">file_exists</code> filter. This avoids getting a 404 error from the plugin and ending up displaying the main page inside of it instead. If the file does not exist, you can output a message to the user. The code displayed above outputs the following:</p> <div class="jupyter-notebook" style="position: relative; width: 100%; margin: 0 auto;"> <div class="jupyter-notebook-iframe-container"> <iframe src="/al-folio/assets/jupyter/blog.ipynb.html" style="position: absolute; top: 0; left: 0; border-style: none;" width="100%" height="100%" onload="this.parentElement.style.paddingBottom = (this.contentWindow.document.documentElement.scrollHeight + 10) + 'px'"></iframe> </div> </div> <p>Note that the jupyter notebook supports both light and dark themes.</p>]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="jupyter"/><summary type="html"><![CDATA[an example of a blog post with jupyter notebook]]></summary></entry><entry><title type="html">a post with custom blockquotes</title><link href="https://alshedivat.github.io/al-folio/blog/2023/custom-blockquotes/" rel="alternate" type="text/html" title="a post with custom blockquotes"/><published>2023-05-12T19:53:00+00:00</published><updated>2023-05-12T19:53:00+00:00</updated><id>https://alshedivat.github.io/al-folio/blog/2023/custom-blockquotes</id><content type="html" xml:base="https://alshedivat.github.io/al-folio/blog/2023/custom-blockquotes/"><![CDATA[<p>This post shows how to add custom styles for blockquotes. Based on <a href="https://github.com/sighingnow/jekyll-gitbook">jekyll-gitbook</a> implementation.</p> <p>We decided to support the same custom blockquotes as in <a href="https://sighingnow.github.io/jekyll-gitbook/jekyll/2022-06-30-tips_warnings_dangers.html">jekyll-gitbook</a>, which are also found in a lot of other sites’ styles. The styles definitions can be found on the <a href="https://github.com/alshedivat/al-folio/blob/master/_sass/_base.scss">_base.scss</a> file, more specifically:</p> <div class="language-scss highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* Tips, warnings, and dangers */</span>
-<span class="nc">.post</span> <span class="nc">.post-content</span> <span class="nt">blockquote</span> <span class="p">{</span>
-  <span class="k">&amp;</span><span class="nc">.block-tip</span> <span class="p">{</span>
-    <span class="nl">border-color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-tip-block</span><span class="p">);</span>
-    <span class="nl">background-color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-tip-block-bg</span><span class="p">);</span>
-
-    <span class="nt">p</span> <span class="p">{</span>
-      <span class="nl">color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-tip-block-text</span><span class="p">);</span>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://qi-zhan.github.io/feed.xml" rel="self" type="application/atom+xml"/><link href="https://qi-zhan.github.io/" rel="alternate" type="text/html" hreflang="en"/><updated>2024-02-27T12:17:28+00:00</updated><id>https://qi-zhan.github.io/feed.xml</id><title type="html">blank</title><subtitle>A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design. </subtitle><entry><title type="html">我的 CS 工作流</title><link href="https://qi-zhan.github.io/blog/2024/workflow/" rel="alternate" type="text/html" title="我的 CS 工作流"/><published>2024-01-20T00:00:00+00:00</published><updated>2024-01-20T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2024/workflow</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2024/workflow/"><![CDATA[<p>本文简单介绍和总结一下我日常科研所使用的一些软件与配置.</p> <h3 id="编辑器-vscode">编辑器 VSCode</h3> <p>对于 CS 科研狗来说最重要的东西莫过于编辑器/IDE了. 据我观察, 身边同龄人几乎都用 VSCode, 我自然也不例外.</p> <h4 id="字体与主题">字体与主题</h4> <ul> <li>字体: <a href="https://github.com/tonsky/FiraCode">Fira Code</a>, 主要原因是我个人非常喜欢连体字的显示效果.</li> <li>主题: <a href="https://marketplace.visualstudio.com/items?itemName=onecrayon.theme-quietlight-vsc">Quiet Light for VSC</a>, 我个人非常喜欢的白天主题颜色, 尤其喜欢深红色的函数名.</li> </ul> <h4 id="vim-模式">Vim 模式</h4> <blockquote> <p>如何生成随机字符串？让一个 Windows 用户使用 Vim，然后让他退出。</p> </blockquote> <p>或许我的配置里面最值得拿出来说的就是这个 <a href="https://github.com/VSCodeVim/Vim">Vim 插件</a>了. <strong>(这也是我发这篇文章想要安利的主要的东西)</strong></p> <p>首先我并不是一个经典和重度的 vim 用户, 也记不住那么多快捷键, 使用的最多的功能无非是 hjkl(代替上下左右移动光标), dd(删除本行), w(下一个词), shift a(行尾插入) 和 visual 模式下对多行的同时操作.</p> <p><strong>我推荐 Vim 模式插件的主要原因是我们可以舒适的把合理的按键映射到 VSCode 本身提供的功能</strong>.</p> <p>举几个例子, vsc 里面有些我个人(大部分人)<strong>特别常用</strong>的功能:</p> <ul> <li>cmd + shift + p, 打开命令面板.</li> <li>cmd + p, 查找当前工作区的文件.</li> <li>cmd + shift + o, 查找当前文件的符号(查找函数之类的)</li> <li>切换不同的打开的文件, previous/next editor.</li> <li>把终端调高调低, 这个看终端显示的时候比较常用. 我以前使用鼠标的时候使用体验较差, 总是要拉到终端的边缘才能调整大小.</li> </ul> <p>也有与语言相关的功能(需要对应语言插件):</p> <ul> <li>查看函数的定义, 按住 cmd 点击函数名.</li> <li>查看函数的文档, 也就是鼠标悬停在函数上面的时候显示的那个文档.</li> <li>重命名变量, 右键点击变量名, 选择 rename symbol.</li> </ul> <p>这些功能特别实用, 而 VSCode 都提供了对应的命令, 有的有快捷键, 有的可以自己设置快捷键, 但我在使用中感觉并不好:</p> <ul> <li>快捷键记不住或者难按, 由于不能和已有的快捷键和普通键冲突, 所以大部分快捷键都并不自然, 尝试记住这些快捷键还不如鼠标点一下.</li> </ul> <p><strong>所以一个自然的想法就是能不能区分不同的模式, 我们平时在编辑代码的时候就是插入模式, 而需要一些特殊操作的时候进入一个normal模式, 这个模式时我们可以把普通的好记的按键映射到那些想要的功能.</strong> 而这个 idea, 几十年前的 vim 就已经实现了.</p> <p>所以我就利用 vim 的各种模式, 把上面提到的那些功能映射到了舒服切好记的按键.</p> <p>从<a href="https://github.com/Qi-Zhan/vscode-vim-config">这里</a>可以看到我对于 vscode vim 的全部配置, 同样举一些我自己用的例子:</p> <ul> <li>shift + : 打开命令面板. ff(find file) 找文件, fs(find symbol) 找符号.</li> <li>rn(rename) 重命名符号</li> <li>gd(go definition) 跳转到定义, gb(go back) 跳回来, ge(go error) 跳转到错误的地方.</li> <li>tab/shift tab 切换到 previous/next editor.</li> <li><code class="language-plaintext highlighter-rouge">&gt;</code> 把当前 editor 推到右边, 这个对于想同时对照看两个文件的时候很有用.</li> <li>control + ~ 切换终端和编辑器, cmd + j/k 调整终端大小, 这个体验也很不错.</li> <li>j+j 进入 normal mode.</li> <li>… 还有一些, 详见配置文件.</li> </ul> <blockquote> <p>本来想搞个 gif 演示一下的, 但是由于我太懒了, 就没做 :-(</p> </blockquote> <p>在 vim mode 的帮助下, 记住这些快捷键可谓是相当容易了(大概), 你可以用你自己直觉上记得住的按键, 反正都是由自己配置的, 自己体验好就行.</p> <p>当然了, 当我慢慢开始使用 vim 时, vim 本身的逻辑和功能也给我带来了一些方便, 这就与我要介绍的重点无关了, 感兴趣的同学可以自行搜索.</p> <h4 id="其他插件">其他插件</h4> <p>这里再推荐几个我觉得比较好用的插件.</p> <ul> <li>Error lens, 可以在代码中直接显示错误信息, 不用再去下方的错误提示栏中查看.</li> <li>indent-rainbow 提供彩虹色锁进.</li> <li>各种语言的插件, 这里特别推荐 clangd, 有时候比微软那套 C++/ C 好用.</li> <li>Copilot, 不用说了.</li> <li>vscode-icons 提供更好看的图标, 纯粹是看着舒服.</li> </ul> <p>最后, 我在写 Java 的时候我会是选择 IDEA, 但是最近和未来大概都没有写 Java 的打算, 也就不再赘述.</p> <h3 id="shell-与-terminal">Shell 与 Terminal</h3> <h4 id="fish">fish</h4> <p>Shell 其实在工作中用的还是比较多的, 被jyy老师在网课上安利之后我就选择了 fish. 使用它的最主要原因就是<strong>开箱即用</strong>的智能补全, 这个功能在真正写命令的时候极其好用, 从此不用再把命令复制到文件里用的时候再拷贝出来了 :-).</p> <p>除此之外, abbr, 即缩写也是一个不错的功能, 比如我在 fish 的配置文件中写了这么一段:</p> <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>➜  ~                                                              <span class="o">(</span>zju<span class="o">)</span>
+   abbr <span class="nt">-a</span> <span class="nt">--</span> m make
+   abbr <span class="nt">-a</span> <span class="nt">--</span> c cargo
+</code></pre></div></div> <p>我在敲击 <code class="language-plaintext highlighter-rouge">m</code> 的时候就会自动补全为 <code class="language-plaintext highlighter-rouge">make</code>, 敲击 <code class="language-plaintext highlighter-rouge">c</code> 的时候就会自动补全为 <code class="language-plaintext highlighter-rouge">cargo</code>. 这样的话有时候可以让手指舒服点…</p> <blockquote> <p>fish 的一个弊端是与 bash 语法不兼容, 使用时要注意一下.</p> </blockquote> <h4 id="iterm2">Iterm2</h4> <p>MacOS 上的默认终端是 Terminal, 但是我使用 Iterm2, 也没有什么特别的原因, 就是 iterm2 可以显示的色彩更多一点?</p> <h3 id="实用命令行工具">实用命令行工具</h3> <p>随着 Rust 等现代编程语言的发展, 有很多人用这些语言重写了部分经典的命令行工具, 感兴趣的同学可见 <a href="https://github.com/ibraheemdev/modern-unix">modern unix</a>, 这里介绍几个我用的比较多的.</p> <ul> <li>du -&gt; dust. dust 可以更舒适的查看整个文件夹的占用大小分布, <a href="https://github.com/bootandy/dust/blob/master/media/snap.png">看张图你就懂了</a>.</li> <li>find -&gt; fd. 更舒适的查找文件, 比如 <code class="language-plaintext highlighter-rouge">fd -e md</code> 就是查找所有的 markdown 文件, <code class="language-plaintext highlighter-rouge">fd -e rs mod</code> 就是查找所有的 rust 模块文件.</li> <li>cat -&gt; bat. 更舒适的查看文件, 适合你要在有语法高亮的情况下简单查看某个文件的情形.</li> </ul> <h3 id="其他">其他</h3> <ul> <li>包管理器 Homebrew. MacOS 上的包管理器, 没啥好说的.</li> <li>文献阅读 Zotero. 标准的文献管理软件, 使用插件可以直接在浏览器中导入文献, 划词翻译也挺好用的.</li> <li>Markdown 编译器 Obsidian. 这方面其实我没有什么要求, 就是一个写笔记做总结的 markdown 集中放置的地方, 所以也没有进行过多的配置. 使用 Obsidian 纯粹是 Typora 不免费了.</li> </ul>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="cs"/><summary type="html"><![CDATA[本文简单介绍和总结一下我日常科研所使用的一些软件与配置.]]></summary></entry><entry><title type="html">符号执行, KLEE 与 LLVM</title><link href="https://qi-zhan.github.io/blog/2023/klee_learning/" rel="alternate" type="text/html" title="符号执行, KLEE 与 LLVM"/><published>2023-12-16T00:00:00+00:00</published><updated>2023-12-16T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2023/klee_learning</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2023/klee_learning/"><![CDATA[<p>最近在尝试使用 KLEE 科研，这里记录一些学习笔记。</p> <h2 id="符号执行一瞥">符号执行一瞥</h2> <p>众所周知，一般的测试都是基于具体的输入，观察程序的行为。 而符号执行的基本思想是，将程序的输入符号化，然后通过符号执行引擎运行程序，得到程序的执行路径，然后通过约束求解器求解路径上的约束，得到具体的输入。具体的知识和例子可参考 [1]，不再赘述。一篇我认为总结的很好的综述。由于我们的目的是进一步的了解符号执行和 KLEE, 所以我们也会偏重总结 KLEE 对于符号执行里的经典问题的选择。</p> <h3 id="执行引擎">执行引擎</h3> <p>符号执行的核心是对于一段具体的代码，究竟该如何执行它，也就是执行引擎。我在看 KLEE 的时候，发现它认为自己是 dynamic symbolic execution(DSE), 但奇怪的是，很多文献将 DSE 和 concolic execution(CE) 混在一起谈论， 但在我的理解下 KLEE 的实现还是比较接近传统符号执行的，CE 在我的认知下是 DART[4] 采用的方法，每次都用具体输入运行然后解约束生成下一个具体的输入的方法，很明显和 KLEE 的做法不一致。 那难道 KLEE 不是 DSE？然而其官网上第一句话就是 KLEE is a dynamic symbolic execution engine built on top of the LLVM compiler infrastructure.</p> <p>这个问题我想了很久，最终在 [2] [3] 这两个资料下得到了解答，符号执行这个词在发展过程中经过了太多的使用。已经需要进一步分类才能区分主流方法了。下面是我根据各种资料再次总结的符号执行的分类：</p> <h4 id="动态符号执行dse">动态符号执行(DSE)</h4> <p>动态符号执行混合了具体的程序执行和符号的程序执行，以此来提升运行效率和解决与环境交互的问题。而 DSE 又能再次进行分类：</p> <ol> <li> <p>“Offline” DSE, 也就是著名的 concolic execution(CE). 它们依赖具体的程序执行来驱动符号的执行。即，<strong>CE 每次的执行都是具体的值的运行</strong>，同时维持一个符号化的约束列表(通过插桩等方法记录约束和具体值的走向)，在真正执行完后，尝试翻转约束列表里面的一些约束得到新的约束然后解得新的具体的程序输入。这也解释了为什么称为离线，因为是在每次具体执行结束之后才求解得到新输入。[5] 的实验内容很好的解释了该如何实现以及有什么好处，推荐感兴趣的同学完成。CE 本质上更像是测试，所以和环境交互并没有太大困难，只是会丢失一些符号状态和相应约束。除了 DART，还有 SAGE, PEX (Microsoft), CUTE (UIUC), CREST (Berkeley) 等工具。</p> </li> <li> <p>“Online” DSE, 也就是 EXE(KLEE), 还有 SPF (NASA Java), Cloud9 这些工具采用的方法，也是我们主要关心的。程序的初始值是符号值的输入，运行程序时如果目标都是具体值就正常执行，如果有一个符号值就采用 expr tree 符号化执行。在遇到分支指令时，fork 出新的状态然后在两边添加对应的约束。在执行终止时求解约束得到具体的测试输入。</p> </li> <li> <p>Selective Symbolic Execution. 交替进行具体执行和符号执行，可以聚焦于感兴趣的代码符号执行，例如 S\(^2\)E.</p> </li> </ol> <p>这也就解决了我的主要疑问，DART 和 KLEE 代表的是 DSE 下的两类方法，由此我认为将 DSE 和 CE 视为同一个东西是不太合理的，只要具体的运行代码了，无论是具体化还是符号化都应当视作 DSE.</p> <h4 id="静态符号执行sse">静态符号执行(SSE)</h4> <p>既然有 DSE, 那肯定就有 SSE，这也是一开始我很疑惑的地方。都是符号环境下运行，普通的 SSE 和以 KLEE 为代表 DSE 区别在哪里？从 [6] 中讲的内容，我个人理解 SSE 更好的理解方式是当成正向的验证策略。基于 hoare 逻辑的验证求的是最弱前条件，然后利用求解器检验当前的前条件能否推出最弱前条件。那么如果我们换一个思路，从前往后来尝试验证，那就可以通过程序的语义来(具体见 [6])抽象代码收集约束并最终完成<strong>前向</strong>的验证。 SSE 的考量中没有路径爆炸的问题(?)，因为它总是像经典的静态分析一样合并路径，通过一个符号表达式来抽象所有的路径。</p> <p>[7] 中也有一个不错的总结：SSE 是 statement-based. DSE 是 path-based. DSE 每次在 <strong>一条路径</strong> 上探索程序，为每条路径生成约束。 而 SSE 遍历程序，将整个语句转换成公式，这里的公式则代表了任一路径的性质。可以将漏洞描述成</p> <h4 id="纯符号执行pure-se">纯符号执行(Pure SE)</h4> <p>纯符号执行枚举程序的路径收集约束然后检测这些条件能否满足。这好像是在分离逻辑验证用的比较多，我就不太懂了 :).</p> <h4 id="分类总结">分类总结</h4> <p>综上所述，<strong>我最终的理解是</strong>，总是运行具体的输入且通过收集路径约束得到下一个具体输入的就是 CE, 这是 DSE 的一种形式，另一种 DSE 则是在符号化基础上解释程序，遇到分支则 fork 出新状态，最后通过约束求解器求解约束得到具体的输入。而 DSE 与 SSE 的最大区别在于 DSE 上按照测试的路子一条路径一个状态(path based)。而 SSE 的视角不同，是按照静态分析的路子尝试抽象(statement-based)，力图只分析一条合并的路径(?)。<strong>感觉平时我们讨论的最广泛的符号执行其实都是指动态符号执行。</strong></p> <blockquote> <p>虽说费劲心思查了好久资料想这个问题在实践上并没有什么用，而且实践上很多方法就是把各种符号执行技术混起来用的，但尝试搞清楚总是有些裨益 :(</p> </blockquote> <h3 id="内存模型">内存模型</h3> <p>内存模型同样符号执行中重要且不易处理的问题。 符号执行过程中，除了遇到那些显然的指令(算法运算)，对于指针和数组取址的处理就涉及到了一个大难题：如何建模内存。这听起来是个很简单的事情，直觉上来看把它当做一个大数组就行了，然而当指针和下标是符号值的情况下，这个问题就变得复杂了。</p> <p>对于数组的下标，一种简单的方法是假设这个符号值可以是有界集合中的任意一个下标，也就是每个情况 fork 一个新状态。而如 KLEE 一般会利用 SMT 里面的 array 相关 theory, 直接将数组作为约束的一等公民(first class)，将数组和相关操作编码进了约束求解器里面。</p> <p>而对于符号化地址的处理则更加麻烦。原则上来说一个符号化的地址可以指向内存的任何一个地方，但如果真要这么考虑状态实在是太多了。所以实践中有些方法采用 address concretization, 地址具体化的方法。而 KLEE 则是将每一个内存的对象都映射到一个数组上，这样就将一个平坦的地址空间映射到了一个分段的地址空间上。</p> <p>具体的处理我们在后面讨论 KLEE 源码中内存相关操作时再详细介绍。</p> <h3 id="与环境交互">与环境交互</h3> <p>环境的交互(系统环境与应用环境)同样也是符号执行遇到的难题。简单来说就是遇到难以符号执行的代码时该怎么处理，例如打开一个文件的返回值，调用没有源码的库函数/底层函数等等。 早期的一些工作 DART, EXE 等选择不处理，也就是放弃对这些函数的符号执行，采用具体的输入来让程序继续运行下去。</p> <p>而 KLEE 则是自己实现了一套基本的符号文件系统来抽象与文件系统交互的过程。</p> <h3 id="缓解路径爆炸">缓解路径爆炸</h3> <p>当程序中有循环时，符号执行会产生大量的路径(每个 while 语句理论上都可以有无穷路径). 所有实践中使用的符号执行工具都会遇到路径爆炸的问题，而多数工具都有自己的或启发式，或经验的方法来缓解。</p> <p>一些很自然的方法包括：</p> <ul> <li>eager evaluation 经常性的检查约束能否满足而不是到最后再次求解一个庞大的约束，对无解的状态直接剪枝。</li> <li>summary 对函数和循环做摘要，生成一个直接的映射关系就不用重复计算了。这个技巧在经典的静态分析中也很常见。</li> <li>Interpolation 没咋看懂</li> <li>state merge 状态合并。</li> </ul> <p>例如在对于下面这段代码：</p> <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span> 
+  <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span> 
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span> 
+  <span class="k">else</span> 
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">3</span><span class="p">;</span> 
+  <span class="k">return</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div> <p>按照一般的情况会生成两个状态 \(\pi = \alpha_x &lt; 5, y = 2 * \alpha_x\); \(\pi = \alpha_x \ge 5, y = 3 * \alpha_x\), 利用 SMT 的表示能力 ite(if-then-else) 我们可以将这两个状态合并成一个状态 \(\pi = \text{true}, y = \text{ite}(\alpha_x &lt; 5, 2 * \alpha_x, 3 * \alpha_x)\).</p> <p>对于类似的情况状态合并总是可以做的，但这也显示是一个 trade-off, 因为这加剧了求解器的负担。这也就诞生了很多启发式的方法，比较有名的是 Veritesting, 它根据简单和困难的语句来考虑是否合并，那些系统调用，也是经典的 DSE 和 SSE 混合使用的例子。</p> <h3 id="约束求解">约束求解</h3> <p>约束的求解并不是我目前太关心的问题，简单总结一下我在 [1] 中看到的一些 KLEE 使用的一些优化策略。</p> <ul> <li>重写/简化表达式</li> <li>implied value concretization, 对于可以推断得到的符号值，直接替换为具体值</li> <li>KLEE 还有一个比较有趣的，称为 counterexample caching 的方法。通过一个 cache, 约束集合映射到一组具体的赋值。当不可满足集合(SMT 无解)在 cache 里面且是我们要求的 S 的子集时，显然 S 也不可满足。同样如果可满足集合是 S 的超集，那 S 也可满足，即使是 S 的子集，也可以优先代入试试看。</li> </ul> <h2 id="klee">KLEE</h2> <p>OK，我们现在进入 KLEE 源码分析阶段。希望能在解释清楚 KLEE 大致流程的同时，<strong>能和前面的理论级别的阐释</strong>对应。 安装过程采用了 KLEE 提供的 Docker 镜像，十分方便，不再赘述。</p> <h3 id="主循环">主循环</h3> <p>KLEE 的主循环出奇的简单且符合预期：</p> <div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// lib::Core::Executor </span>
+<span class="c1">// void Executor::run(ExecutionState &amp;initialState)</span>
+<span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">states</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">haltExecution</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// 由当前使用的 searcher 选择下一个要 run 的状态</span>
+    <span class="n">ExecutionState</span> <span class="o">&amp;</span><span class="n">state</span> <span class="o">=</span> <span class="n">searcher</span><span class="o">-&gt;</span><span class="n">selectState</span><span class="p">();</span>
+    <span class="c1">// 当前状态的指令</span>
+    <span class="n">KInstruction</span> <span class="o">*</span><span class="n">ki</span> <span class="o">=</span> <span class="n">state</span><span class="p">.</span><span class="n">pc</span><span class="p">;</span>
+    <span class="c1">// 指令往前偏移</span>
+    <span class="n">stepInstruction</span><span class="p">(</span><span class="n">state</span><span class="p">);</span>
+    <span class="c1">// 执行指令</span>
+    <span class="n">executeInstruction</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">ki</span><span class="p">);</span>
+    <span class="c1">// 更新状态集合，例如增加新产生的状态，删除已经结束的状态</span>
+    <span class="n">updateStates</span><span class="p">(</span><span class="o">&amp;</span><span class="n">state</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div> <p>当然这里面最重要的就是 <code class="language-plaintext highlighter-rouge">executeInstruction</code> 了，真正的解释执行每一个 LLVM IR, 约 <strong>1.3k</strong> LOC, 我简化了大部分代码：</p> <div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="n">Executor</span><span class="o">::</span><span class="n">executeInstruction</span><span class="p">(</span><span class="n">ExecutionState</span> <span class="o">&amp;</span><span class="n">state</span><span class="p">,</span> <span class="n">KInstruction</span> <span class="o">*</span><span class="n">ki</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Instruction</span> <span class="o">*</span><span class="n">i</span> <span class="o">=</span> <span class="n">ki</span><span class="o">-&gt;</span><span class="n">inst</span><span class="p">;</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">i</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+    <span class="c1">// 算数表达式，最典型且最易处理的情况</span>
+    <span class="k">case</span> <span class="n">Instruction</span><span class="o">::</span><span class="n">Add</span><span class="p">:</span> <span class="p">{</span>
+      <span class="n">ref</span><span class="o">&lt;</span><span class="n">Expr</span><span class="o">&gt;</span> <span class="n">left</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">state</span><span class="p">).</span><span class="n">value</span><span class="p">;</span>
+      <span class="n">ref</span><span class="o">&lt;</span><span class="n">Expr</span><span class="o">&gt;</span> <span class="n">right</span> <span class="o">=</span> <span class="n">eval</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">state</span><span class="p">).</span><span class="n">value</span><span class="p">;</span>
+      <span class="c1">// 找到 ki 对应的 target index, 赋一个 AddExpr</span>
+      <span class="n">bindLocal</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">AddExpr</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">));</span>
     <span class="p">}</span>
-
-    <span class="nt">h1</span><span class="o">,</span>
-    <span class="nt">h2</span><span class="o">,</span>
-    <span class="nt">h3</span><span class="o">,</span>
-    <span class="nt">h4</span><span class="o">,</span>
-    <span class="nt">h5</span><span class="o">,</span>
-    <span class="nt">h6</span> <span class="p">{</span>
-      <span class="nl">color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-tip-block-title</span><span class="p">);</span>
+    <span class="c1">// cast 转类型指令略过</span>
+    <span class="c1">// 控制流指令, 最经典的 fork 处理，一边增加 condition 为 true 的约束，一边增加 condition 为 false 的约束</span>
+    <span class="k">case</span> <span class="n">Instruction</span><span class="o">::</span><span class="n">Br</span><span class="p">:</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+    <span class="c1">// ** 内存相关指令 **</span>
+    <span class="k">case</span> <span class="n">Instruction</span><span class="o">::</span><span class="n">Alloca</span><span class="p">:</span> <span class="p">{</span>
+      <span class="c1">// 一些与 LLVM 的交互得到要分配的内存大小</span>
+      <span class="n">executeAlloc</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="nb">true</span><span class="p">,</span> <span class="n">ki</span><span class="p">);</span>
     <span class="p">}</span>
-  <span class="p">}</span>
-
-  <span class="k">&amp;</span><span class="nc">.block-warning</span> <span class="p">{</span>
-    <span class="nl">border-color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-warning-block</span><span class="p">);</span>
-    <span class="nl">background-color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-warning-block-bg</span><span class="p">);</span>
-
-    <span class="nt">p</span> <span class="p">{</span>
-      <span class="nl">color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-warning-block-text</span><span class="p">);</span>
+    <span class="c1">// 这个 executeMemoryOperation 后面重点讨论</span>
+    <span class="k">case</span> <span class="n">Instruction</span><span class="o">::</span><span class="n">Load</span><span class="p">:</span>
+    <span class="k">case</span> <span class="n">Instruction</span><span class="o">::</span><span class="n">Store</span><span class="p">:</span> <span class="p">{</span>
+      <span class="n">executeMemoryOperation</span><span class="p">(...);</span>
     <span class="p">}</span>
-
-    <span class="nt">h1</span><span class="o">,</span>
-    <span class="nt">h2</span><span class="o">,</span>
-    <span class="nt">h3</span><span class="o">,</span>
-    <span class="nt">h4</span><span class="o">,</span>
-    <span class="nt">h5</span><span class="o">,</span>
-    <span class="nt">h6</span> <span class="p">{</span>
-      <span class="nl">color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-warning-block-title</span><span class="p">);</span>
+    <span class="c1">// GEP 只计算地址，不参与内存运行，怪不得看起来比较 trivial</span>
+    <span class="c1">// &lt;https://llvm.org/docs/LangRef.html#getelementptr-instruction&gt;</span>
+    <span class="k">case</span> <span class="n">Instruction</span><span class="o">::</span><span class="n">GetElementPtr</span><span class="p">:</span> <span class="p">{</span>
+      <span class="p">...</span>
     <span class="p">}</span>
-  <span class="p">}</span>
-
-  <span class="k">&amp;</span><span class="nc">.block-danger</span> <span class="p">{</span>
-    <span class="nl">border-color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-danger-block</span><span class="p">);</span>
-    <span class="nl">background-color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-danger-block-bg</span><span class="p">);</span>
-
-    <span class="nt">p</span> <span class="p">{</span>
-      <span class="nl">color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-danger-block-text</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="nt">h1</span><span class="o">,</span>
-    <span class="nt">h2</span><span class="o">,</span>
-    <span class="nt">h3</span><span class="o">,</span>
-    <span class="nt">h4</span><span class="o">,</span>
-    <span class="nt">h5</span><span class="o">,</span>
-    <span class="nt">h6</span> <span class="p">{</span>
-      <span class="nl">color</span><span class="p">:</span> <span class="nf">var</span><span class="p">(</span><span class="o">--</span><span class="n">global-danger-block-title</span><span class="p">);</span>
-    <span class="p">}</span>
+  <span class="p">}</span>    
+<span class="p">}</span>
+</code></pre></div></div> <p>eval 函数如我们前面所介绍的，常量就从常量池里面取，变量就从当前栈帧的局部变量里面取。其中的 <code class="language-plaintext highlighter-rouge">index</code> 建立与我想在后面介绍的构建系统相关。</p> <div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">const</span> <span class="n">Cell</span><span class="o">&amp;</span> <span class="n">Executor</span><span class="o">::</span><span class="n">eval</span><span class="p">(</span><span class="n">KInstruction</span> <span class="o">*</span><span class="n">ki</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">index</span><span class="p">,</span> 
+                           <span class="n">ExecutionState</span> <span class="o">&amp;</span><span class="n">state</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">vnumber</span> <span class="o">=</span> <span class="n">ki</span><span class="o">-&gt;</span><span class="n">operands</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">vnumber</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 常量</span>
+    <span class="kt">unsigned</span> <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="n">vnumber</span> <span class="o">-</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">kmodule</span><span class="o">-&gt;</span><span class="n">constantTable</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="c1">// 变量</span>
+    <span class="kt">unsigned</span> <span class="n">index</span> <span class="o">=</span> <span class="n">vnumber</span><span class="p">;</span>
+    <span class="n">StackFrame</span> <span class="o">&amp;</span><span class="n">sf</span> <span class="o">=</span> <span class="n">state</span><span class="p">.</span><span class="n">stack</span><span class="p">.</span><span class="n">back</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">sf</span><span class="p">.</span><span class="n">locals</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
   <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div></div> <p>A regular blockquote can be used as following:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gt">&gt; This is a regular blockquote</span>
-<span class="gt">&gt; and it can be used as usual</span>
-</code></pre></div></div> <blockquote> <p>This is a regular blockquote and it can be used as usual</p> </blockquote> <p>These custom styles can be used by adding the specific class to the blockquote, as follows:</p> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gt">&gt; ##### TIP</span>
-<span class="gt">&gt;</span>
-<span class="gt">&gt; A tip can be used when you want to give advice</span>
-<span class="gt">&gt; related to a certain content.</span>
-{: .block-tip }
-</code></pre></div></div> <blockquote class="block-tip"> <h5 id="tip">TIP</h5> <p>A tip can be used when you want to give advice related to a certain content.</p> </blockquote> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gt">&gt; ##### WARNING</span>
-<span class="gt">&gt;</span>
-<span class="gt">&gt; This is a warning, and thus should</span>
-<span class="gt">&gt; be used when you want to warn the user</span>
-{: .block-warning }
-</code></pre></div></div> <blockquote class="block-warning"> <h5 id="warning">WARNING</h5> <p>This is a warning, and thus should be used when you want to warn the user</p> </blockquote> <div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gt">&gt; ##### DANGER</span>
-<span class="gt">&gt;</span>
-<span class="gt">&gt; This is a danger zone, and thus should</span>
-<span class="gt">&gt; be used carefully</span>
-{: .block-danger }
-</code></pre></div></div> <blockquote class="block-danger"> <h5 id="danger">DANGER</h5> <p>This is a danger zone, and thus should be used carefully</p> </blockquote> ]]></content><author><name></name></author><category term="sample-posts"/><category term="formatting"/><category term="blockquotes"/><summary type="html"><![CDATA[an example of a blog post with custom blockquotes]]></summary></entry></feed>
+</code></pre></div></div> <h3 id="状态管理">状态管理</h3> <p>KLEE 中的状态，也就是一个个被 fork 出的分支路径，在 <code class="language-plaintext highlighter-rouge">/klee/Execution-State.h</code> 中, 主要包含两类 objects:</p> <ul> <li>AddressSpace: 包含了当前状态所有 objects 的元数据，包括全局，局部和堆上的对象。<code class="language-plaintext highlighter-rouge">AddressSpace::resolveOne</code> 用于解析一个地址，返回一个 <code class="language-plaintext highlighter-rouge">ObjectState</code> 对象。</li> <li>ConstraintManager: 记录约束。</li> </ul> <h3 id="内存相关操作">内存相关操作</h3> <p>简单的符号执行在上文讨论的函数 <code class="language-plaintext highlighter-rouge">executeInstruction</code> 中已经是自明的了。但是对于内存相关的操作，例如 <code class="language-plaintext highlighter-rouge">Load</code> 和 <code class="language-plaintext highlighter-rouge">Store</code> 就需要进一步的处理了。这里也能对应前文对于 KLEE 内存模型的讨论，也是我接下来工作比较关心的部分。下面的内容大量参考 [8], 一篇介绍 KLEE 内部实现的文章。</p> <h4 id="executememoryoperation">executeMemoryOperation</h4> <p>KLEE 中两个与内存相关的类是 <code class="language-plaintext highlighter-rouge">MemoryObject</code> 和 <code class="language-plaintext highlighter-rouge">ObjectState</code>, 定义在 <code class="language-plaintext highlighter-rouge">lib/Core/Memory.h</code> 中。</p> <p>MemoryObject 用来表示一个有基址和大小的 object, 在 <code class="language-plaintext highlighter-rouge">executeMemoryOperation</code> 中 KLEE 自动确保这样的访问是合法的，MemoryObject 提供了一些方便的方法来实现这一点。如果说 MemoryObject 关注的是 Object 的空间一致性，那么 ObjectState class 的作用就是用来真正访问状态里的内存值。</p> <p>如我们上面看到的， Load 和 Store 指令的实现都来自<code class="language-plaintext highlighter-rouge">executeMemoryOperation</code>. 这个函数的实现混合了 我们前面提到的 AddressSpace, MemoryObject::getBoundsCheckOffset, ObjectState, 如果出现了 overflow 就会报错并终止当前状态。</p> <h3 id="构建过程">构建过程</h3> <p>KLEE 是基于 LLVM IR 的，所以这里的构建过程指的是 KLEE 是如何通过 wrapper 的方式将一个项目的字节码(.bc 文件) 转换成适合自身处理的代码。例如前面的 <code class="language-plaintext highlighter-rouge">eval</code> 函数里面的表的建立，各种 IR 相关信息的获取。这个部分在符号执行的技术上是不太重要的，主要是工程实践相关，但如果我们也想做类似的基于某一种 IR 的进一步操纵，看看如何包装还是有一定参考价值的。</p> <p>经过我一番寻找，这里面最重要的函数应该是 <code class="language-plaintext highlighter-rouge">lib:module:KModule::manifest</code>:</p> <div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="n">KModule</span><span class="o">::</span><span class="n">manifest</span><span class="p">(</span><span class="n">InterpreterHandler</span> <span class="o">*</span><span class="n">ih</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">forceSourceOutput</span><span class="p">)</span> <span class="p">{</span>
+  <span class="cm">/* Build shadow structures */</span>
+  <span class="cm">/* 把所有指令搞个表，trivial */</span>
+  <span class="n">infos</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">InstructionInfoTable</span><span class="o">&gt;</span><span class="p">(</span>
+      <span class="k">new</span> <span class="n">InstructionInfoTable</span><span class="p">(</span><span class="o">*</span><span class="n">module</span><span class="p">.</span><span class="n">get</span><span class="p">()));</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Function</span> <span class="o">*&gt;</span> <span class="n">declarations</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">Function</span> <span class="o">:</span> <span class="o">*</span><span class="n">module</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// wrapper KFunction, 里面有 wrapper KInstruction</span>
+    <span class="c1">//</span>
+    <span class="c1">// 这里面完成了我感兴趣的 local 的绑定和计算</span>
+    <span class="k">auto</span> <span class="n">kf</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">KFunction</span><span class="o">&gt;</span><span class="p">(</span><span class="k">new</span> <span class="n">KFunction</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Function</span><span class="p">,</span> <span class="k">this</span><span class="p">));</span>
+    <span class="n">functionMap</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Function</span><span class="p">,</span> <span class="n">kf</span><span class="p">.</span><span class="n">get</span><span class="p">()));</span>
+    <span class="n">functions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">kf</span><span class="p">));</span>
+  <span class="p">}</span>
+  <span class="cm">/* Compute various interesting properties */</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div></div> <h2 id="llvm">LLVM</h2> <p>可以看出，KLEE 的本质是在符号基础上解释 LLVM IR。我感觉多了解一些 LLVM 的使用对于现在和今后科研都能有所帮助。简单的 LLVM 介绍也不再赘述，只列出我感兴趣的(大概)更深入的内容。</p> <h3 id="一切皆-value">一切皆 Value</h3> <p>这是一开始让我感到有些奇怪的点，LLVM 的 Value Class 的描述:</p> <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>This is a very important LLVM class. It is the base class of all values computed by a program that may be used as operands to other values. Value is the super class of other important classes such as Instruction and Function. All Values have a Type. Type is not a subclass of Value. Some values can have a name and they belong to some Module. Setting the name on the Value automatically updates the module's symbol table.
+
+Every value has a "use list" that keeps track of which other Values are using this Value. A Value can also have an arbitrary number of ValueHandle objects that watch it and listen to RAUW and Destroy events. See llvm/IR/ValueHandle.h for details.
+</code></pre></div></div> <p>原来这个 use list 是会追踪全部 value 的，而 无论是指令，或者函数都是 Value.</p> <p>To be continued…</p> <h2 id="杂项">杂项</h2> <ul> <li><a href="https://github.com/travitch/whole-program-llvm">wllvm</a> 和 <a href="https://github.com/SRI-CSL/gllvm">gllvm</a> 可以基于项目的 makefile 生成整个项目的 LLVM IR，这样可以方便的使用 KLEE 进行符号执行。</li> <li>记得加参数 <a href="https://github.com/klee/klee/issues/937">–disable-verify</a>, 否则无法加载 bitcode 文件。</li> <li>–optimize 说不定是一个很重要的参数。</li> </ul> <h2 id="参考资料">参考资料</h2> <p>[1] <a href="https://arxiv.org/pdf/1610.00502.pdf">A Survey of Symbolic Execution Techniques.</a></p> <p>[2] <a href="https://ece.uwaterloo.ca/~agurfink/stqam.w19/assets/pdf/W05-DSE.pdf">https://ece.uwaterloo.ca/~agurfink/stqam.w19/assets/pdf/W05-DSE.pdf</a></p> <p>[3] <a href="https://alastairreid.github.io/RelatedWork/notes/symbolic-execution/">https://alastairreid.github.io/RelatedWork/notes/symbolic-execution/</a></p> <p>[4] <a href="https://dl.acm.org/doi/10.1145/1065010.1065036">DART</a></p> <p>[5] <a href="https://css.csail.mit.edu/6.858/2023/labs/lab3.html">MIT lab</a></p> <p>[6] <a href="https://cmu-program-analysis.github.io/2023/index.html">CMU program analysis ch 13</a></p> <p>[7] <a href="https://softsec.kaist.ac.kr/~sangkilc/papers/avgerinos-icse14.pdf">Enhancing Symbolic Execution with Veritesting</a></p> <p>[8] <a href="https://github.com/angea/pocorgtfo/blob/master/contents/articles/18-08.pdf">KLEE Internal</a></p>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="cs"/><summary type="html"><![CDATA[最近在尝试使用 KLEE 科研，这里记录一些学习笔记。]]></summary></entry><entry><title type="html">Python 第三方依赖引发的惨案</title><link href="https://qi-zhan.github.io/blog/2023/dependency/" rel="alternate" type="text/html" title="Python 第三方依赖引发的惨案"/><published>2023-11-24T00:00:00+00:00</published><updated>2023-11-24T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2023/dependency</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2023/dependency/"><![CDATA[<p>最近要再复现一下论文的实验结果作为最后的检查，由于服务器重装导致原本配置的conda环境丢失，所以我需要重新配置。 本来想着在前几个月写代码的时候已经做好了<code class="language-plaintext highlighter-rouge">requirements.txt</code>，直接安装就好了，然而并没有这么顺利，在多处排查(数据集，代码，环境)之后才发现真正的原因来自第三方依赖。</p> <p>其中我的程序最核心的依赖是 <code class="language-plaintext highlighter-rouge">angr</code>，版本为 9.2.36，<code class="language-plaintext highlighter-rouge">requirements.txt</code> 如下：</p> <pre><code class="language-txt">angr==9.2.36
+</code></pre> <p>安装之后当然 <code class="language-plaintext highlighter-rouge">angr</code> 的版本是符合预期的，但实验结果却很奇怪，简单来说就是得到的中间表示和预期不符，少了一些信息。我一开始还以为是不是数据集在这个诡异的服务器重装时出现了问题或者是我错误的更改了代码。而在和我另一台电脑的环境比对之后，最终发现是 <code class="language-plaintext highlighter-rouge">angr</code> 的依赖 <code class="language-plaintext highlighter-rouge">capstone</code> 的版本不一致导致的，从 5.0.1 换成 4.0.2 之后就一切正常了。</p> <p>那么为什么会出现这一问题呢，我查看了对应版本下 <code class="language-plaintext highlighter-rouge">angr</code> 的依赖，发现了这么一段：</p> <pre><code class="language-txt">capstone!=5.0.0rc2,&gt;=3.0.5rc2
+</code></pre> <p>原来 <code class="language-plaintext highlighter-rouge">angr</code> 只要求不是 5.0.0rc2 且大于 3.0.5rc2 的版本，有可能开发者已经发现了 5.0 版本的 <code class="language-plaintext highlighter-rouge">capstone</code> 并不兼容所以特地排除。在我当初做实验的时候，在这个约束下会使用 4.0.2 的 <code class="language-plaintext highlighter-rouge">capstone</code>。然而到现在，<code class="language-plaintext highlighter-rouge">capstone</code> 已经有更新的 5.0.1 了，因此我们就会装目前最新的版本，但是 9.2.36 的 <code class="language-plaintext highlighter-rouge">angr</code> 并不兼容 5.0.1，最终导致实验不符合预期。而为了避免这一问题，我们只需要在 <code class="language-plaintext highlighter-rouge">requirements.txt</code> 中指定 <code class="language-plaintext highlighter-rouge">capstone</code> 的版本即可。</p> <p>没想到即使写了 <code class="language-plaintext highlighter-rouge">requirements.txt</code> 锁住了我直接依赖的库的版本，还是因为依赖的依赖的版本踩了一个大坑 :(</p> <p>本来我对于依赖这一问题是不太在意的，现在看来依赖冲突检测还是相当有意义的，即使我这种小型代码随着时间的推移也有可能出现这种难以发现的依赖问题，更不用说大型项目了。不过从技术角度来说，想要自动化的检测这种依赖冲突是相当困难的，运行时并不会有直接的异常产生。 怪不得我前几周看到的论文都是从论坛和各种地方爬取讨论的信息构建依赖冲突的知识图谱然后再进行检测的，想要检测出我面对的这种问题，使用一些简单的基于源码的依赖分析确实相当困难。</p>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="cs"/><summary type="html"><![CDATA[最近要再复现一下论文的实验结果作为最后的检查，由于服务器重装导致原本配置的conda环境丢失，所以我需要重新配置。 本来想着在前几个月写代码的时候已经做好了requirements.txt，直接安装就好了，然而并没有这么顺利，在多处排查(数据集，代码，环境)之后才发现真正的原因来自第三方依赖。]]></summary></entry><entry><title type="html">随机游走</title><link href="https://qi-zhan.github.io/blog/2023/randomwalk/" rel="alternate" type="text/html" title="随机游走"/><published>2023-10-22T00:00:00+00:00</published><updated>2023-10-22T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2023/randomwalk</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2023/randomwalk/"><![CDATA[<blockquote> <p>A drunk man will find his way home, but a drunk bird may get lost forever.</p> </blockquote> <p>本文使用几乎纯组合的方法证明低维随机游走的几个有趣的结论，即一维与二维随机游走的回返性与三维游走的非回返性。</p> <h2 id="一维随机游走">一维随机游走</h2> <p>一维随机游走的定义非常简单：一个动点在每一个时刻 \(n = 1, 2, \dots, 3\) 以概率 \(p\) 向上移动一格，以概率 \(q = 1 - p\) 向下移动一格。当 \(p = q=\frac{1}{2}\) 时，这个游走称为对称的。下面的讨论，我们对只考虑对称的情形。</p> <p>下图为随机游走中的一个时间-空间坐标系，横坐标代表时间，纵坐标代表位置，这样的一条折现就称为运动的<strong>轨迹</strong>。</p> <p align="center"> <img src="/assets/img/randomwalk.png" width="60%"/> </p> <h3 id="组合法基础">组合法基础</h3> <p>我们以 \(L(x, y)\) 表示从原点开始到 \((x,y)\)的轨迹的条数。当 \(x, y\) 奇偶性相同且 \(y\le x\) 时，我们有</p> \[L(x, y) = C_x^{(x+y)/2}\] <p>其他情形下，\(L(x,y) = 0\). (证明是显然的，即组合数定义)</p> <p>下面介绍本文最重要的引理——反射原理。</p> <p><strong>反射原理</strong> 假设 \(A(x_0, y_0), B(x, y), A'(x_0, -y_0)\) 是在坐标上的点，且 \(0&lt;x_0&lt;x, y_0&gt;0, y&gt;0\)，那么由 \(A\) 到 \(B\) 的<strong>与横坐标相交</strong>的路线的条数等于由 \(A'\) 到 \(B\) 的所有条数。</p> <p>证明：下图的一一映射道尽一切。</p> <p align="center"> <img src="/assets/img/reflect.png" withd="20%"/> </p> <p>在以后的叙述中，我们称路线为正的，如果它的顶点都严格位于横坐标轴上方(除了起始点)；称路线为非负的，如果它没有位于横坐标轴下方的顶点。</p> <p>由反射原理我们可以得到如下推论：</p> <p><strong>引理1</strong> 以原点 \((0,0)\) 为起点，以横坐标 \(x\) 为终点的正路线的总数：1) 当 \(x\) 为偶数时，为 \(C_{x-1}^{x/2}\)；2) 当 \(x\) 为奇数时，为 \(C_{x-1}^{(x-1)/2}\).</p> <p>证明：首先这样的路线必通过 \((1,1)\)，由 \((1,1)\) 到达横坐标 \(x\) 的路线总数为 \(\sum_{y=y_0}^xL(x-1, y-1)\), 由 \((1, -1)\) 到达横坐标 \(x\) 的路线总数为 \(\sum_{y=y_0}^{x-2}L(x-1, y+1)\), 其中</p> \[y_0 = \begin{cases} 1, &amp; x \text{为奇数} \\ 2, &amp; x \text{为偶数} \end{cases}\] <p>注意求和时 \(y\) 的取值范围，如果是 \((1,-1)\) 开始上界只能到 \(x-2\)。</p> <p>由反射原理我们知道正路线即为他们的差，也就是</p> \[\sum_{y=y_0}^xL(x-1, y-1) -\sum_{y=y_0}^xL(x-1, y+1) = L(x-1, y_0-1) = \begin{cases} C_{x-1}^{(x-1)/2}, &amp; x \text{为奇数} \\ C_{x-1}^{x/2}, &amp; x \text{为偶数} \end{cases}\] <p>一个显然的推论是，以原点 \((0,0)\) 为起点，以横坐标 \(x\) 为终点的正路线和负路线的总数为两倍的正路线，为 \(2C_{2n-1}^n=C_{2n}^n\)，若 \(x=2n\)；为 \(2C_{2n}^n\)，若 \(x=2n+1\).</p> <h3 id="一维随机游走的回返性">一维随机游走的回返性</h3> <p>有了最重要的反射原理及其推论，我们就可以证明一维随机游走的回返性了，即动点在运动后终能回到原点的概率为 \(1\).</p> <p>在考虑这一问题的时候，我们只考虑偶数步回到零的可能，即 \((0,0)\) 到 \((2n, 0)\) 的路线数。 我们以 \(u_{2n}\) 表示动点在第 \(2n\) 步时回到原点的概率，由路线数与总路线数之比可立即推得：</p> \[u_{2n} = \frac{C_{2n}^n}{2^{2n}}\] <p>其次，以 \(f_{2n}\) 表示动点在 \(2n\) 时 <strong>第一次</strong> 回到原点的概率，我们有如下引理：</p> <p><strong>引理2</strong> \(f_{2n} = u_{2n-2} - u_{2n}\) 即第一次回到原点的概率等于在第 \(2n\) 步回到原点的概率减去在第 \(2n-2\) 步回到原点的概率。</p> <p>证明：我们引入 \(A_{2n}\)：在 \(2n\) 步之内，动点一次也未返回原点，也就是正路线和负路线；\(B\) 质点于第 \(2n\) 步返回原点。由上一节的推论我们立刻知道</p> \[P(A_{2n}) = u_{2n}\] <p>我们知道 \(A_{2n-2}\bigcap B\) 表示在第 \(2n\) 步<strong>首次</strong>返回原点，因此 \(P(A_{2n-2}\bigcap B) = f_{2n}\).</p> <p>易知 \((A_{2n-1}\bigcap B)\bigcup(A_{2n-2}\bigcap \bar{B}) = A_{2n-2}\)，而从定义我们可以看到 \(2n\) 步不返回原点的事件数就是 \(2n-2\) 步不返回原点的事件交上 \(2n\) 步不返回原点的事件，也就是 \(A_{2n-2}\bigcap\bar{B}=A_{2n}\)，因此</p> \[\begin{array} P(A_{2n-2}\bigcap B) + P(A_{2n}) &amp;= P(A_{2n-2}) \\ f_{2n} + u_{2n} &amp;= u_{2n-2} \\ f_{2n} &amp;= u_{2n-2} - u_{2n} \end{array}\] <p>有了这一引理，我们立刻可以知道动点在 \(2n\) 步之内返回原点的概率为 \(f_2 + f_4+\dots+f_{2n} = 1 - u_2 - u_4 - \dots - u_{2n} = 1 - u_{2n}\).</p> <p>而斯特林公式告诉我们对于 \(u_{2n}\) 的估计：</p> \[\begin{array} nn! &amp;\approx \sqrt{2\pi n}(\frac{n}{e})^n \\ C_{2n}^n &amp;\approx 2^{2n}\sqrt{\frac{2}{\pi n}} \\ u_{2n} &amp;\approx \frac{1}{\sqrt{\pi n}} \end{array}\] <p>也就有如下定理：</p> <p><strong>定理1</strong> 一维随机游走的回返性：动点以概率 \(1\) 返回原点。</p> <p>除了回返性，随机游走还有许多重要的性质，例如对于动点逗留时间讨论导出的反正弦定理，限于篇幅，这里不再赘述。</p> <h2 id="二维与三维随机游走">二维与三维随机游走</h2> <p>一维随机游走可以自然的推广到更高的维度：二维即在平面上以 \(\frac14\) 的概率向上、下、左、右移动一格；三维即在空间中以 \(\frac16\) 的概率向上、下、左、右、前、后移动一格。</p> <p>首先证明一条引理：</p> <p><strong>引理3</strong> \(u_{2n} = \sum_{k=1}^n f_{2k}u_{2n-2k}\)</p> <p>证明：由全概率公式和对于 \(u, f\) 的定义不难推得。</p> <p>有了这一引理，我们对左右两边求和：</p> <p>左式： \(\sum_{n=1}^\infty u_{2n} = \sum_{n=0}^\infty u_{2n} -1\).</p> <p>右式：\(\sum_{n=1}^\infty[\sum_{k=1}^n f_{2k}u_{2n-2k}] = \sum_{k=1}^\infty f_{2k}\sum_{n=0}^\infty u_{2n}\). (?)</p> <p>因此</p> \[\begin{array} \sum\sum_{n=0}^\infty u_{2n}-1 &amp;= \sum_{n=1}^\infty u_{2n} -1 =\sum_{k=1}^\infty f_{2k}\sum_{n=0}^\infty u_{2n} \\ \sum_{n=1}^\infty f_{2n} &amp;= 1 - \frac1{\sum_{n=0}^\infty u_{2n}} \end{array}\] <p>所以我们立刻得到：若级数 \(\sum u_{2n}\) 发散，那么 \(\sum f_{2n} = 1\)，即回到原点的概率为 \(1\). 反之，则回到原点的概率小于 \(1\).</p> <p>首先在二维随机游走中，我们求概率 \(u_{2n}\), 总路线有 \(4^{2n}\) 条，而回到原点则要求向上和向下的路线数相等，向左和向右的路线数相等，因此这样的路线为：</p> \[\sum_{k=0}^n\frac{(2n)!}{k!k!(n-k)!(n-k)!} = C_{2n}^n\sum_{k=0}^n (C_n^k)^2 = (C_{2n}^n)^2\] <p>那么同样利用斯特林公式：</p> \[u_{2n} = 4^{-2n}(C_{2n}^n)^2\approx \frac{1}{\pi n}\] <p>显然 \(\sum_{n=2}^\infty u_{2n} = \infty\)，这是一个经典的发散级数，故二维随机游走是回返的。</p> <p>而在三维随机游走中，我们有类似的：</p> \[u_{2n} = 6^{-2n}\sum_{0\le i + j \le n}\frac{(2n)!}{i!i!j!j!(n-i-j)!(n-i-j)!}\] <p>(以下省略一波暴算和估计)</p> <p>可以得到 \(u_{2n} 的数量级为 \frac{1}{n^{3/2}}\)，因此 \(\sum_{n=2}^\infty u_{2n} &lt; \infty\)，故三维随机游走是非回返的。经计算，回返的概率大约是 \(0.35\).</p> <p>综上所述，一维随机游动的一条极好性质——回返性，在二维空间仍然成立，然而在三维及三维以上空间就不满足了。</p> <blockquote> <p>随机游走的回返性最终与p级数的收敛性相关，这是一个非常有趣的结论。</p> </blockquote> <h2 id="参考资料">参考资料</h2> <p>柯尔莫哥洛夫. 《概率论导引》. 本文主要是对其第四章内容的总结与笔记。</p>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="math"/><summary type="html"><![CDATA[A drunk man will find his way home, but a drunk bird may get lost forever.]]></summary></entry><entry><title type="html">算法趣谈(2)——快速平方根逆</title><link href="https://qi-zhan.github.io/blog/2023/algorithm2/" rel="alternate" type="text/html" title="算法趣谈(2)——快速平方根逆"/><published>2023-10-04T00:00:00+00:00</published><updated>2023-10-04T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2023/algorithm2</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2023/algorithm2/"><![CDATA[<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">float</span> <span class="nf">inv_sqrt</span><span class="p">(</span><span class="kt">float</span> <span class="n">number</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">uint32_t</span> <span class="n">i</span><span class="p">;</span>
+    <span class="kt">float</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">float</span> <span class="n">threehalfs</span> <span class="o">=</span> <span class="mi">1</span><span class="p">.</span><span class="mi">5</span><span class="n">F</span><span class="p">;</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">number</span> <span class="o">*</span> <span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="n">F</span><span class="p">;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">number</span><span class="p">;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">y</span><span class="p">;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mh">0x5f3759df</span> <span class="o">-</span> <span class="p">(</span><span class="n">i</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">float</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">i</span><span class="p">;</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="p">(</span><span class="n">threehalfs</span> <span class="o">-</span> <span class="p">(</span><span class="n">x2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">));</span>
+    <span class="c1">// y = y * (threehalfs - (x2 * y * y));</span>
+    <span class="k">return</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div> <p>这是一段奇怪却又极富盛名的代码，通过一些使用令人费解的操作之后和奇怪的 <code class="language-plaintext highlighter-rouge">0x5f3759df</code>，返回了 <code class="language-plaintext highlighter-rouge">number</code> 的平方根的倒数，即 \(\frac1{\sqrt{number}}\). 这段代码就是 <a href="https://en.wikipedia.org/wiki/Quake_III_Arena">Quake III Arena</a> ，作者为 <a href="https://en.wikipedia.org/wiki/John_Carmack">John Carmack</a>.</p> <p>本文将介绍这段代码的原理。</p> <h3 id="ieee-754">IEEE 754</h3> <p>要想了解这个算法，我们得首先看看浮点数在计算机下的表示方法，即 <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a> 标准。</p> <p>假设数字 \(x = 0.15625 = {0.00101}_2 = 1.01 \times 2^{-3}\)，那么在 IEEE 754 中，其表示为：</p> <p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Float_example.svg/600px-Float_example.svg.png" alt="IEEE 754"/></p> <ul> <li>符号位：\(0\)，表示正数.</li> <li>指数位：\(E = 01111100\)，为 \(-3 + 127 = 124\) 得到，其目的是能够表示正负指数。</li> <li>尾数位：\(M = 01000000000000000000000\)，其真实值为 \(1 + \frac{M}{2^{23}} = 1 + 0.25 = 1.25 = 1.01_2\). 这里的 1 是因为 IEEE 754 中默认尾数位为 \(1.M\)，所以可以节省一位。</li> </ul> <p>我们可以得到</p> \[x = (1 + \frac{M}{2^{23}}) \times 2^{E - 127}\] <h3 id="对数的魔法">对数的魔法</h3> <p>接下来我们要做的就是看看我们能否尽可能的利用等价变形化简这个值并进行近似。 看到指数时一个自然的想法就是取对数，即</p> \[\begin{align*} x &amp;= (1 + \frac{M}{2^{23}}) \times 2^{E - 127}\\ \log_2 x &amp;= \log_2 (1 + \frac{M}{2^{23}}) + E - 127\\ &amp;\approx \frac{M}{2^{23}} + \mu + E - 127\\ &amp;= \frac{1}{2^{23}}(M + 2^{23} \times E) + \mu - 127 \end{align*}\] <p>注意到 \(M + 2^{23} \times E\) <em>恰好</em> 是 \(x\) 二进制下的表示。这一洞察为我们提供了一个近似的方法。</p> <h3 id="主算法">主算法</h3> <p>有了以上的铺垫，我们就可以开始看看这个算法了。</p> <h4 id="bit-hack">Bit Hack</h4> <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">y</span> <span class="o">=</span> <span class="n">number</span><span class="p">;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">y</span><span class="p">;</span>
+</code></pre></div></div> <p>这是利用指针和地址将 \(y\) 作为无符号整型来得到该浮点数的二进制表示，不多赘述，后面的代码也是同理，只不过是将整型转为浮点型。</p> <h4 id="magic-number">Magic Number</h4> <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">i</span> <span class="o">=</span> <span class="mh">0x5f3759df</span> <span class="o">-</span> <span class="p">(</span><span class="n">i</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">);</span> <span class="c1">// 这里的 i 即为 M + 2^23 x E</span>
+</code></pre></div></div> <p>为了计算 \(z = \frac{1}{\sqrt{y}}\)，我们还是取对数，即 \(\log_2 z = -\frac12 \log_2 y\)，而根据上面的推导，我们有</p> \[\frac{1}{2^{23}}(M_z + 2^{23} \times E_z) + \mu - 127 = -\frac12(\frac{1}{2^{23}}(M_y + 2^{23} \times E_y) + \mu - 127)\] <p>不难得到</p> \[\begin{align*} M_z + 2^{23} \times E_z &amp;= \frac32 2^{23}(127-\mu) - \frac12(M_y + 2^{23} \times E_y)\\ &amp;= Magic - (i &gt;&gt; 1); \end{align*}\] <p>注意 \(\mu\) 是上文近似对数函数得到的，对于 \(\mu\) 值的选择也就决定了 magic number 的值。</p> <blockquote> <p>枚举还是计算？ 在以前听到这个算法的时候有个最大比较大的争议是 0x5f3759df 这个神奇的数字究竟是纯粹数学计算出来的还是枚举出来的。通过维基百科资料我的感觉是这是在一个范围内枚举出来的，因为这个值本身即使考虑牛顿迭代法也不是<strong>最优</strong>的。所以一个可能的结果是在通过计算得到一个范围，例如 0x5f37642f 这个在某些分布下表现较好的值，然后再基于这个值上下枚举出一个实际使用最合适的。</p> </blockquote> <h4 id="牛顿迭代法">牛顿迭代法</h4> <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="p">(</span><span class="n">threehalfs</span> <span class="o">-</span> <span class="p">(</span><span class="n">x2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">));</span>
+</code></pre></div></div> <p>最后一步较为简单，是利用牛顿迭代法来进行近似，回顾一下牛顿迭代法的原理：</p> \[y_{n+1} = y_n - \frac{f(y_n)}{f'(y_n)}\] <p>而对应于 \(f(y) = \frac{1}{y^2} - x\)，我们有</p> \[\begin{align*} f'(y) &amp;= -\frac2{y^3}\\ y_{n+1} &amp;= y_n - \frac{\frac1{y_n^2} - x}{-\frac2{y_n^3}}\\ &amp;= y_n + \frac{y_n - xy_n^3}{2}\\ &amp;= y_n(\frac32 - \frac{x}{2}y_n^2) \end{align*}\] <p>也就对应了上面的代码。</p> <h3 id="意义与应用">意义与应用</h3> <p>快速平方根逆算法的应用或者说是来源主要是图形学中的单位向量计算。如 \(v = (v_1, v_2, v_3)\), \(\Vert v \Vert = \sqrt{v_1^2 + v_2^2 + v_3^2}\), 则单位向量为 \(\frac{v}{\Vert v\Vert}\), 也就要用到平方根逆算法。</p> <p>但随着硬件的发展，这个算法已经没那么重要了，例如在 <a href="https://en.wikipedia.org/wiki/Streaming_SIMD_Extensions">SSE</a> 中有一个指令 <code class="language-plaintext highlighter-rouge">rsqrtss</code> 就是专门用来计算平方根逆的，速度和准度都比这个算法要好。当然这些并不影响这个算法的魅力。</p> <blockquote> <p>本文主要参考<a href="https://www.youtube.com/watch?v=p8u_k2LIZyo&amp;t=3s">该视频</a>和<a href="https://en.wikipedia.org/wiki/Fast_inverse_square_root">维基百科</a>.</p> </blockquote>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="algorithm"/><summary type="html"><![CDATA[float inv_sqrt(float number) { uint32_t i; float x2, y; const float threehalfs=1.5F; x2=number * 0.5F; y=number; i=*(uint32_t *) &amp;y; i=0x5f3759df - (i &gt;&gt; 1); y=*(float *) &amp;i; y=y * (threehalfs - (x2 * y * y)); // y=y * (threehalfs - (x2 * y * y)); return y; }]]></summary></entry><entry><title type="html">算法趣谈(1)——秘书问题与37%法则</title><link href="https://qi-zhan.github.io/blog/2023/algorithm0/" rel="alternate" type="text/html" title="算法趣谈(1)——秘书问题与37%法则"/><published>2023-05-18T00:00:00+00:00</published><updated>2023-05-18T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2023/algorithm0</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2023/algorithm0/"><![CDATA[<p>假如你是一家公司的老板，你要找一个秘书。假设有 \(N\) 个候选者应聘，每个候选者都有能力值。而你能做的是应聘完一个候选者后，获得他的能力值，然后立刻选择要不要选其作为你的秘书。如果你选择了该候选者，那么应聘结束，剩下的候选者也就不必再看了；如果你不选该候选者，那么你就不能回头再来选择这个人了。那么，你该采取什么样的策略，才能最大化你选到最优候选者(能力值最大)的概率呢？</p> <p>这是一个经典的在线算法的例子，也被称为候选人问题，结婚问题等等。计院 <em>著名课程</em> 高级数据结构与算法分析(俗称ADS)中也有对此的讨论。一个经典且正确的思路是我们必须先看一部分人，残忍的拒绝他们，看完之后我们对这批人的水平有了大概的了解，然后选择下一个比他们都要优秀的人作为最终的秘书。那么我们该拒绝多少人才比较合适呢？</p> <p>首先最优候选人处在第 \(i\) 个的概率都是 \(\frac1N\) ，假设我们选择放弃 \(m\) 个人，那么想要选到最优的候选人就要满足：在面试他之前我们不能选了别人。还记得我们的策略是说选择第一个比前 \(m\) 个人都要优秀的候选者吗，也就是说前 \(i-1\) 个人中最优秀的那个得在前面 \(m\) 个人里面，不然我们就会选择这个人而不是第 \(i\) 号位的最优人选。而前 \(i-1\) 个人最优秀的那个在前 \(m\) 人中的概率显然是 \(\frac{m}{i-1}\)，所以我们得到最终概率就是对其进行求和，即为：</p> \[P=\frac mN\sum_{i=m+1}^N\frac1{i-1}\] <p>注意这里的 \(i\) 是从 \(m+1\) 开始的，因为前 \(m\) 个人我们放弃了所以如果最有候选人在前 \(m\) 个人里面，我们选中的概率即为0。而我们熟悉的近似式 \(\sum\frac1i\approx \ln i\) 告诉我们：</p> <p>\(P\approx\frac mN(\ln N-\ln m)=-\frac mN\ln\frac mN\) 对其进行求导可以得到 \(\frac mN=\frac1e\) 时，概率最大，为 \(\frac1e\).</p> <p>如果有了解过这个问题的同学到这一步想必都是熟悉的，我们得到了 \(\frac1e\) 的优雅答案，而 \(\frac1e\) 约等于 37%，也就有了我们平常所说的 37%法则。</p> <p>但是其实问题还没完，我们只证明了<strong>如果我们的策略是选择一部分人并放弃掉，然后选择下一个比这些人都优秀的人的话，那么当人数趋于正无穷时，放弃的人比例最优值是 \(\frac1e\) ，但我们想要证明的是</strong>任意一个策略，最终能选到最优秀的人的概率都不会比我们上面的方法更高，即我们的策略是<strong>最优的</strong> 。 举个例子，我们可以选择第二个比这些人都优秀的人，可以选择下一个比半数放弃的人都要优秀的人，甚至可以直接选择第一个人(当然这肯定是不靠谱的)。</p> <p>而这个问题同样早就被解决了，我们介绍Beckmann在1990年Dynamic Programming and the Secretary Problem中提出的基于动态规划的分析。</p> <p>首先我们介绍两个非常重要的函数/数列，它们能帮助我们解决问题：</p> <p>\(v_m\) 是已经看过 \(m\) 个候选者而且我们没有选第 \(m\) 个候选者的情况下，我们能选中最优候选者的概率。</p> <p>\(u_m\) 是已经看过 \(m\) 个候选者而且第 \(m\) 个候选者是目前最优的情况下，我们能选中最优候选者的概率。</p> <p><strong>假设我们的策略是最优的</strong>，那么我们可以得到以下两个式子：</p> \[v_m=\frac m{m+1}v_{m+1}+\frac1{m+1}u_{m+1}\] <p>若第 \(m\) 个候选者没有被选择，第 \(m+1\) 候选者要么是目前为止最好的(概率为 \(\frac1{m+1}\))，要么不是(概率为 \(\frac{m}{m+1}\))。如果不是，那么选中最好的概率就变成 \(v_{m+1}\)，因为最优解一定不会选择第 \(m+1\) 个候选者；而如果是的话，概率就自然变成我们所定义的 \(u_m\).</p> \[u_m=\max(\frac mN,v_m)\] <p>如果已经看过 \(m\) 个候选者而且第 \(m\) 个候选者是目前最优的情况下(\(u_m\) 的定义)，那么我们的选择就变成了我们要选择该候选者或者继续。如果选择这个候选者，那么我们能选择最优候选者的概率就是 \(\frac mN\)，因为我们总共看过 \(m\) 个人且我们选择的其中最好的；而如果继续下去，概率就变成了 \(v_m\)，正如我们定义的那样。</p> <p>有趣的是，这两个式子已经 <em>完全描述</em> 了最优解的结构，我们可以将所有值都解出来。根据定义 \(v_N=0,u_N=1\)，那么我们可以推出</p> \[v_{N-1}=\frac{N-1}Nv_N+\frac1Nu_N=\frac1N\\ u_{N-1}=\max(\frac{N-1}N,v_{N-1})=\frac{N-1}N\] <p>继续写下去我们可以发现规律，在 \(\frac mN\ge v_m\) 即 \(u_m=\frac mN\) 的时候利用数学归纳法不难证明：</p> \[v_m=\frac mN(\frac1m+\frac1{m+1}+\dots+\frac1{N-1})\\ u_m=\frac mN\max(1,\frac1m+\frac1{m+1}+\dots+\frac1{N-1})\] <p>而随着 \(m\) 的减小，\(u_m\) 中 \(\frac1m+\dots+\frac1{N-1}\) 也会越来越大最终超过1，我们令最后一个不超过1的值为 \(m^*\)，即</p> \[\sum_{i=m^*}^{N-1}\frac1i\le1&lt;\sum_{i=m^*-1}^{N-1}\frac1i\] <p>从这里开始，我们上文归纳出的式子不再适用，但事情实际上更简单了，因为 \(u_m\) 从现在开始就等于 \(v_m\)，而更好的是由于这一点 \(v_m=v_{m+1}\) 从而 \(u_0=v_0=v_{m^*-1}\). 它的意思是当 \(m\) 小到一定程度上的时候，\(u_m\) 就是 \(v_m\)，由它们的定义我们知道这就是说如果看的候选者太少了，那么即使你是目前最好的候选者，也不会选择你。极端情况下我们很容易理解这件事，如果我们只看了一个人，那么这个人当然是目前最好的候选者，</p> <p>相信读者已经发现了， \(m^*\) 其实就对应着我们所说的放弃的那一部分人。注意到 \(v_0\) 的意思是在我们什么都还没看的时候，能选中最优解的概率，那就是我们所求的答案! \(v_0=v_{m^*-1}=\frac{m^*-1}N(\sum_{m^*-1}^{N-1}{\frac1i})\) 而这和我们上文所说的放弃一部分人然后选则第一个的策略的概率，即式(1)是一致的，这就完成了证明。</p> <p>总结一下，在秘书问题中，如果想要最大化选到最优者的概率，我们证明了：</p> <ul> <li>对于每一个 \(N\) ，放弃一部分人并且选择第一个比这些放弃的人都好的人的这一族算法，都是最优的策略。该放弃的人的比例对应上文的 \(m^*\).</li> <li>当 \(N\to\infty\) 时，最优的放弃比例是 \(\frac1e\)，我们选中最优的人的概率亦为 \(\frac1e\).</li> </ul>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="algorithm"/><summary type="html"><![CDATA[假如你是一家公司的老板，你要找一个秘书。假设有 \(N\) 个候选者应聘，每个候选者都有能力值。而你能做的是应聘完一个候选者后，获得他的能力值，然后立刻选择要不要选其作为你的秘书。如果你选择了该候选者，那么应聘结束，剩下的候选者也就不必再看了；如果你不选该候选者，那么你就不能回头再来选择这个人了。那么，你该采取什么样的策略，才能最大化你选到最优候选者(能力值最大)的概率呢？]]></summary></entry><entry><title type="html">算法趣谈(0)——古老的石子游戏</title><link href="https://qi-zhan.github.io/blog/2022/algorithm1/" rel="alternate" type="text/html" title="算法趣谈(0)——古老的石子游戏"/><published>2022-08-09T00:00:00+00:00</published><updated>2022-08-09T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2022/algorithm1</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2022/algorithm1/"><![CDATA[<p>相信很多人在小学数学题或其他地方都见过这样一个游戏：从1开始，每人依次报1-3个数，先报到20的人胜利。而本文正是介绍组合博弈中的这一类游戏——捡石子，并介绍数学家发展出的一般理论与证明。</p> <h3 id="阅读本文的可能的收获">阅读本文的可能的收获</h3> <ul> <li> <p>相较于可以直接搜索到的各种有关石子博弈的文章，本文更系统的介绍这些经典的石子游戏并给出结论，读者在掌握方法后就可以和别人<strong>愉快</strong>的玩耍了(doge)。</p> </li> <li> <p>本文会给出对于这些博弈的未经审视的证明供大家参考。虽然本文的核心思路和概念来自各路证明(我当然想不出来这么巧妙的方法)，但语言和证明细节都由我自己完成，很有可能是存在缺陷的，也希望读者在阅读过程中也能帮忙检查这些证明。</p> </li> </ul> <p>我们先借最简单的巴什博弈来介绍先手、后手必胜和奇异局势等基本概念，而这些概念则会贯穿所有博弈。</p> <h3 id="巴什博弈-bash-game">巴什博弈 Bash Game</h3> <p><strong>游戏描述：场上有1堆石子，数目为n个，双方依次拿1~ m个石子(\(m\) 为定义好的正整数)，拿到最后一个石子的玩家获胜。</strong></p> <p>相信大家在许多场合已经见过这个游戏，并且大概已经知道了答案：</p> <ul> <li>若n是(1+m)的倍数，先手必胜。</li> <li>反之，后手必胜。</li> </ul> <p>等等，我们需要先简单且<strong>不严谨</strong>的定义一下这些概念：</p> <h4 id="定义1必胜">定义1：必胜</h4> <p>若玩家在当前局势下，无论对手进行任何符合规则的操作，该玩家都能有相应的<strong>策略</strong>赢得最终的胜利，则称玩家在该局势下是<strong>必胜</strong>的。若首先行动的玩家是必胜的，则称该游戏是<strong>先手必胜</strong>的，若后行动的玩家是必胜的，则称<strong>后手必胜</strong>。</p> <blockquote> <p>事实上，经典的石子游戏属于两人组合策略博弈，必然存在先手必胜或后手必胜。 严谨的关于策略、必胜等的定义其实也并不困难，但本文重点不在于此，感兴趣的读者可以在任何一本正经的博弈论教材中找到相关定义。</p> </blockquote> <p>当我们知道这个答案后不难猜出答案的来源，一个玩家总是有办法将一轮双方取石子总数控制在1+m，那如果石子的数目不是模为0，先手方只需要拿石子，使得剩下的石子是 1+m 的倍数，然后每次都将剩下的石子数控制在 k(1+m)，直到石子被拿完。</p> <blockquote> <p>较为严格的证明会在下文给出。</p> </blockquote> <p>上述过程显然不难理解，而值得思考和推广的核心在于石子是1+m的倍数这种局面，我们有以下发现：</p> <ol> <li>0(1+m)=0，即如果玩家进行操作，将局势转换这该情况，该玩家获胜。</li> <li>如果当前局面是(1+m)倍数，那么玩家无论选择在规则下拿几个石子(1~m)，剩下的石子总不会是其倍数。</li> <li>如果当前局面不是(1+m)倍数，那么该玩家总可以拿部分石子，使得剩下的石子总数是(1+m)的倍数。</li> </ol> <p>而将这种局面进行抽象，也就得到了本文的核心概念：</p> <h4 id="定义2奇异局势">定义2：奇异局势</h4> <p>假设有 \(l\) 堆石子个数分别为 \(n_1,\dots,n_l\) (简称 \((n_i)\))，我们记所有局势的集合为\(U=\{(a_1,\dots,a_l)\},a_i\le n_i,a_i\in \mathbb{N}\)，即所有可能发生的石子数组成的集合。 若集合 \(S\subset U\)满足如下性质：</p> <ol> <li>\(0\in S\)，这里的0实际上指的是 \((0,\dots,0)\)</li> <li>若当前局势 \((s_i)\in S\) 且 \((s_i)\ne0\)，那么进行任一符合规则的操作，新的局势不是奇异局势， \((s_i')\in U\setminus S\)</li> <li>若当前局势不是奇异局势，即 \((s_i)\in U\setminus S\)，那么存在一符合规则的操作，新的局势 \((s'_i)\in S\)</li> </ol> <p>我们称集合 \(S\) 是代表<strong>奇异局势</strong>的集合，集合中的元素是<strong>奇异</strong>的。</p> <p>奇异局势将巴什博弈的特殊的局面抽象出来，我们再将其结论也抽象出来：</p> <h3 id="定理1">定理1</h3> <p>若该博弈存在上述定义的奇异局势，那么：</p> <ol> <li> <p>若初始局势 \((n_i)\) 不是奇异局势，则先手必胜。</p> </li> <li> <p>若初始局势 \((n_i)\) 是奇异局势，则后手必胜。</p> </li> </ol> <p>证明：首先我们有如下观察：</p> <ul> <li>因为每位玩家必须取石子，所以石子的数目一定严格小于上一步的数目，游戏一定在有限步内终止。</li> <li>由奇异局势定义，(1) 和 (2) 是等价的，所以我们只证明(2).</li> </ul> <p>我们对场上石子数目采用数学归纳法证明。若初始局势 \((n_i)=0\)，是奇异局势，则先手方无子可拿，后手胜。 若 \((n_i)&gt;0\)，将双方一轮博弈后的局势看作一个新游戏的初始局势，此时的石子数严格小于原博弈石子数。由归纳假设我们知道，若这个局势 \((n''_i)\) 是奇异局势，则后手必胜。那么后手方如何确保这个局势是奇异局势呢？这就用到了奇异局势的定义和初始条件。由定义2(2)我们知道，先手者进行任何操作进入的局势 \((n'_i)\) 必然不属于奇异局势。而由于0是奇异局势，场面上一定还有石子，由定义2(3)后手者一定可以在取石子后使得新的局势 \((n_i')\) 是奇异局势，这就是我们希望的。</p> <blockquote> <p>这个定理直觉是是显然的，利用数学归纳法我认为能比较清楚的证明它。</p> </blockquote> <p>奇异局势可以看作某种意义上的<strong>不变量</strong>。上述定义和定理给了我们一套解决这类问题的<strong>范式</strong>：找到并证明该游戏的奇异局势，本文介绍的石子游戏证明都会通过这种方法来描述。</p> <p>本节最后我们用奇异局势的语言证明巴什博弈的结论，感受一下抽象的力量(bushi)：</p> <h3 id="定理2巴什博弈">定理2：巴什博弈</h3> <p>\(S = \{s\mid s\equiv 0\mod (1+m)\}\)只需证明：</p> <ol> <li> \[0\equiv 0\implies 0\in S\] </li> <li>由于是 \(s\) 是奇异局势且 \(s\ne 0\)，我们令 \(s=k(1+m),k\ge1\)，若拿 \(1\le t\le m\) 个石子，则 \(s'=(k-1)(1+m)+(1+m-t)\) ， \(s'\equiv (1+m-t),1\le(1+m-t)\le m\implies s'\notin S\)</li> <li>由于 \(s\) 不是奇异局势，由带余除法我们知道 \(s=k(1+m)+r,1\le r\le m\)，所以只需取 \(r\) 个石子即可。(我们也证明了取法是唯一的)</li> </ol> <p>可能有读者还是觉得本节的内容太平凡了，不过是在奇异局势的语言下叙述了这件事，其证明本质大概是我们小学就会的带余除法，下一节我们会介绍一个有难度的游戏：</p> <h3 id="尼姆博弈-nim-game">尼姆博弈 (Nim Game)</h3> <p><strong>游戏描述：</strong> 场上有 \(l\) 堆石子，双方依次选择某一堆石子，取至少一个石子，拿到最后一个石子的玩家获胜。</p> <p>这个游戏最经典的版本是[3, 4, 5]的情形，先手必胜。感兴趣的读者可以自己先玩玩看。</p> <p>由上面的讨论，我们知道，我们的最终目的是找到一个局势的集合，使得它满足奇异局势的要求，即找到函数 \(f(n_1,\dots,n_l)\to\{0,1\}\)，来判定一个局势是否是先手必胜(1)还是后手必胜(0)。虽然任意多堆和拿任意多石子让问题难以入手，但我们还是可以有以下观察：</p> <ul> <li>\(f\) 是对称的，多元函数交换变量顺序结果是不变的。</li> <li>只剩一堆石子时，先手必胜，因为玩家可以直接拿完所有石子。</li> <li>只剩两堆石子时，也不难想到答案。如果两堆石子数目相同，那后手方总可以在另一堆石子上重复先手方的操作，从而使得两堆石子同时为0，此时先手放无子可拿。</li> <li>还剩三堆石子时就麻烦了，如果存在两堆石子数目相同，这时我们直接把另一堆拿完，就回到了 \(l=2\)的情形，但如果没有的话我们似乎没有什么办法了…</li> </ul> <p>两堆石子的情况给了我们很大的启发，相同则函数输出为0，后手必胜；不同则函数输出为1，先手必胜。那么什么运算满足这个性质呢？</p> <p><strong>异或！</strong> 相同为0，不同为1，异或运算可以完成这件事。而两个数的异或运算实质上是在二进制表示上进行的逐位异或。而令人惊奇的是，<strong>尼姆博弈中奇异局势等价判断一列数异或是否为0</strong>：</p> <h4 id="例1345">例1：[3,4,5]</h4> <p>回到本节开头，一个经典的先手必胜场景：</p> <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>            3 = 011   -2   1 = 001          
+            4 = 100        4 = 100          
+            5 = 101        5 = 101   ...    
+         XOR ______     XOR ______          
+              = 010          = 000          
+</code></pre></div></div> <blockquote> <p><strong>这个结论由数学家Charles L. Bouton在1901-1902年 Annals of Mathematics上给出</strong></p> </blockquote> <p>而接下来我们需要证明这一点：</p> <h3 id="定理3尼姆博弈">定理3：尼姆博弈</h3> <p>由上一节的定理1我们只要证明 \(S=\{(s_i)\mid \bigoplus_{i=1}^{l}(s_i)=0\}\)是奇异局势，即 ：</p> <ol> <li> <p>\(0\in S\)，这是显然的</p> </li> <li> <p>若 \((s_i)\in S\)，我们要证明任取 \(0\le s_k'&lt; s_k ， (s_1,\dots,s_{k-1},s'_,s_{k+1},\dots,s_l)\notin S\) ，这并不困难。我们假设存在一种取法使得异或为0，即\((\bigoplus_{i\ne k}s_i)\oplus s_k'=0\)，那么我们添加上两个异或，可以得到</p> </li> </ol> \[s_k\oplus(\bigoplus_{i\ne k}s_i)\oplus s_k' \oplus s_k= s_k\oplus s_k\\ 0 \oplus s_k' \oplus s_k = 0\\ s_k' = s_k\] <p>这与 \(s_k'\le s_k\) 矛盾，故假设不成立，不存在这种取法。</p> <ol> <li>若 \((s_i)\notin S\)，我们要证明必存在 \(0\le s_k'&lt; s_k\) 使得 \((s_1,\dots,s_{k-1},s'_k,s_{k+1},\dots,s_l)\in S\). 因为 \(\bigoplus_{i=1}^{l}(s_i)\ne0\)，则我们可以找到二进制最左边的1(例子中<code class="language-plaintext highlighter-rouge">010</code>的1)，那么此时石子堆中必然有 \(s_k\) 其该位值为1（如果全0异或之后也还是0），我们就令 \(s_k' = s_k \oplus \bigoplus_{i=1}^{l}(s_i)\)，由 \(s_k\) 的选取我们知道最前面的1被异或成0了，所以 \(s'_k\lt s_k\)，这是一个合法的操作。另一方面， \((\bigoplus_{i\ne k}s_i)\oplus s_k' = (\bigoplus_{i\ne k}s_i)\oplus s_k \oplus \bigoplus_{i=1}^{l}(s_i) = 0\) 这就是所要证明的。</li> </ol> <p>大家可能已经发现了，虽然我们想不出来答案，但如果告诉我们结论，证明还是相对容易的。</p> <p>最后，我们会介绍一个证明本身也不太容易的博弈——威佐夫博弈。</p> <h3 id="威佐夫博弈-wythoff-game">威佐夫博弈 Wythoff Game</h3> <p><strong>游戏描述：</strong> 有两堆石子，双方依次进行选择：从两堆里面拿相同多的石子，或者从一堆里面拿任意多的石子。拿到最后一个石子的玩家胜利。</p> <p>这个问题没啥好观察的，因为我也观察不出来，我们直接给出结论：</p> \[\alpha=(1+\sqrt{5}) / 2, \beta=(3+\sqrt{5}) / 2 \\ S=\{(\lfloor n \alpha\rfloor,\lfloor n \beta\rfloor)\mid n \in \mathbb{Z}\}\cup\{(\lfloor n \beta\rfloor,\lfloor n \alpha\rfloor)\mid n \in \mathbb{Z}\},\] <p>即奇异局势是由这些奇怪的无理数的倍数取下整得到的。为了证明这确实是奇异局势，我们需要先证明一个引理：</p> <h3 id="引理-beatty定理">引理: Beatty定理</h3> <p>若正<strong>无理数</strong>满足 \(\frac1p+\frac1q=1\)，那么</p> \[P=\left\{\lfloor n p\rfloor\mid n \in \mathbb{Z}^{+}\right\}, Q=\left\{\lfloor m y\rfloor\mid m \in \mathbb{Z}^{+}\right\}\] <p>是一个正整数集的划分。</p> <p>我们要证明两点：</p> <ol> <li> <p>\(\forall z\in \mathbb Z^+ \implies z\in P \lor z\in Q\) 反证法。若 \(z\notin P \land z\notin Q\)，即 \(np&lt;z&lt;z+1&lt;(n+1)p,mq&lt;z&lt;z+1&lt;(m+1)q\\ \frac{n+m}z &lt;\frac1p+\frac1q=1&lt; \frac{n+1}{z+1}+\frac{m+1}{z+1}\\ n+m&lt;z&lt;n+m+1\) 这与 \(n,m,z\) 都是整数矛盾。</p> </li> <li> <p>\(\forall z\in \mathbb Z^+ \implies \neg( z\in P \land z\in Q)\) 反证法。若 \(z\in P \land z\in Q\)，即 \(z&lt;np&lt;z+1,z&lt;mq&lt;z+1\\ \frac n{z+1}+\frac m{z+1} &lt;\frac1p+\frac1q=1&lt; \frac nz+\frac mz \\ z&lt;n+m&lt;z+1\) 这与 \(n,m,z\) 都是整数矛盾。</p> </li> </ol> <p>我们发现\(\frac1\alpha+\frac1\beta=1\)，所以可以使用该引理得到一组划分，另外还注意到 \(\beta=\alpha+1\)，所以我们只需证明：</p> <blockquote> <p><strong>这个结论由数学家Willem A. Wythoff在1907年给出</strong></p> </blockquote> <h3 id="定理4威佐夫博弈">定理4：威佐夫博弈</h3> <p>\(S=\{(\lfloor n\alpha\rfloor,\lfloor n\alpha\rfloor+n),n\in\mathbb Z\}\) 是奇异局势，具体来说，我们要证明：</p> <ol> <li> <p>\((0,0)\in S\)，\(n=0\) 即可。</p> </li> <li> <p>\(s=(\lfloor n\alpha\rfloor,\lfloor n\alpha\rfloor+n)\in S\)，如果选择某堆拿石子的话只能拿多的那堆，由引理的分划性 \(s'\notin S\)，而如果两堆同时拿 \(k\) 个石子且还是奇异局势的话， \(s'=(\lfloor n\alpha\rfloor-k,\lfloor n\alpha\rfloor+n-k)\in S\\ \implies \begin{matrix}\lfloor n\alpha\rfloor-k=\lfloor n_1\alpha\rfloor \\ \lfloor n\alpha\rfloor+n-k= \lfloor n_1\alpha\rfloor+n_1 \end{matrix}\implies n=n_1\) 矛盾，故 \(s'\notin S\)</p> </li> <li> <p>\(s=(s_1,s_2)\notin S，s_1\le s_2\)（对称性假设），由引理中的分划性有以下情况：</p> <ul> <li>\(s_1=\lfloor n\alpha\rfloor,s_2&gt;=s_1,\)，若 \(s_2-s_1&gt;=n+1\) ，把 \(s_2\) 取到 \(s_1+n\)即可。若 \(s_2-s_1\lt n\)，那么我们知道将两堆各取某些石子，结果必然是 \((\lfloor (s_2-s_1)\alpha\rfloor,\lfloor (s_2-s_1)\alpha\rfloor+(s_2-s_1))\)，为奇异局势。</li> <li>\(s_1=\lfloor n\alpha\rfloor+n,s_2\ge s_1\)，将 \(s_2\) 取到 \(\lfloor n\alpha\rfloor\) 即可。</li> </ul> </li> </ol> <blockquote> <p><a href="https://zhuanlan.zhihu.com/p/454084562">Wythoff 博弈及其扩展 - 知乎 (zhihu.com)</a> 有些对于 \(\alpha,\beta\) 的有趣探讨和扩展。</p> </blockquote> <p>综上所述，我们就在奇异局势的框架下完成了三个最经典的石子游戏的证明。</p>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="algorithm"/><summary type="html"><![CDATA[相信很多人在小学数学题或其他地方都见过这样一个游戏：从1开始，每人依次报1-3个数，先报到20的人胜利。而本文正是介绍组合博弈中的这一类游戏——捡石子，并介绍数学家发展出的一般理论与证明。]]></summary></entry><entry><title type="html">《线性代数应该这样学》笔记</title><link href="https://qi-zhan.github.io/blog/2022/doneright/" rel="alternate" type="text/html" title="《线性代数应该这样学》笔记"/><published>2022-07-29T00:00:00+00:00</published><updated>2022-07-29T00:00:00+00:00</updated><id>https://qi-zhan.github.io/blog/2022/doneright</id><content type="html" xml:base="https://qi-zhan.github.io/blog/2022/doneright/"><![CDATA[<p>本人在大一下就跟着卢老师学过 LinearAlgebraDoneRight 部分内容，现在快大四了基本都忘完了。不过该书优雅的架构和精巧的内容还是令我印象深刻，加上线性代数后面的内容我个人认为还是比较重要的，所以这个暑假我准备再看一遍并做些记录。本文可以看作我的拾遗，也可以当作本书我认为的重点内容和思路的回顾与整理。</p> <p><a href="https://link.springer.com/content/pdf/10.1007/978-3-319-11080-6.pdf">原书下载地址</a></p> <p>本文力图<strong>逻辑自洽</strong>、<strong>内容自洽</strong>，使读者走进线性代数，感觉到一个概念的引入和定义是<strong>自然</strong>的而不是<strong>突兀</strong>的，并能理解更深刻的内容，引导和理解的内容主要由我对原书作者的理解加工而成。</p> <h2 id="阅读本文原书可能的收获">阅读本文(原书)可能的收获</h2> <ul> <li>在线性映射框架下对特征值、特征向量的不同理解——第5章</li> <li>谱定理、奇异值分解的理论基础——第7章</li> <li>若当标准型——第8章</li> </ul> <h2 id="预备知识">预备知识</h2> <p>本文会直接从第五章，即特征值开始谈起，所以本章会先介绍常用记号和一些基础的概念，保持全文的完整性，便于阅读。当然，本章必然会不够完全，我会预设大家有一些线性代数、向量空间的知识比如向量空间定义，向量长成，向量空间的基与维数等，从而避免冗长的概念介绍。</p> <p>向量空间(vector space)：\(V, W\) 数域：\(F\)</p> <blockquote> <p>我认为这里的向量空间与经典线性代数教材的线性空间完全相同。</p> </blockquote> <p>子空间：含于原向量空间且运算封闭包含0元</p> <p>张成(span)：给定一组向量 \(v_1,\dots,v_m\)，\(\text{span}(v_1,\dots,v_m)=\{a_1v_1+\dots+a_mv_m\}\), 即由这些向量可以线性表示的所有向量的集合</p> <p>线性映射(linear map)：\(T:V\to W\)，满足</p> \[T(u+v)=T(u)+T(v), T(\lambda v)=\lambda T(v)\] <p>\(\mathcal{L}(V,W)\)：\(V\to W\)所有线性映射的集合，同样构成一个向量空间</p> <p>核空间(null space)：\(\text{null }T=\{v\in V:Tv=0\}\)</p> <p>像空间(range space)：\(\text{range }T=\{Tv:v\in V\}\)</p> <p>商空间(quotient space)：\(U\) 是 \(V\) 的子空间，那么商空间 \(V/U\) 定义 \(V/U=\{ v+U:v\in V \}\)</p> <blockquote> <p>核空间、像空间和商空间的概念在数学中使用是如此广泛以至于研究各种对象（向量空间、群）的映射时都会使用且放在一个重要地位。</p> </blockquote> <p>线性变换(linear transformation): 向量空间到自己的线性映射</p> <p>线性变换 \(T\) 复合 \(m\) 次记作 \(T^m\)，逆(如果可逆)记作 \(T^{-1}\)。特别的 \(T^0=I\)，即恒等映射。</p> <p>直和(direct sum)：设 \(U_1,\dots,U_,\) 是 \(V\) 的子空间，那么和 \(U_1+\dots+U_m\) 称为直和当每一个和空间的元素可以唯一写为 \(u_1+\dots+u_m,u_i\in U_i\). 我们用记号 \(U_1\oplus\dots\oplus U_m\) 来表示。</p> <p>对本文有兴趣却又对这些概念不熟悉的读者可以参看原书1-4章，相信上过线性代数课程的同学是不会感到陌生的。</p> <h2 id="5-特征值特征向量与不变子空间">5 特征值，特征向量与不变子空间</h2> <p>本章主要介绍有限维向量空间的线性变换，在不变子空间的基础上给出对于特征值、特征向量的理解和相关定理证明，我认为其思路不同于很多线性代数课本，是十分漂亮且有价值的。</p> <h3 id="5a-不变子空间">5.A 不变子空间</h3> <p>研究任何问题的方法都是先研究简单的情形，再考虑复杂的情况。那么想要理解线性变换，一个自然的思路就是考虑对向量空间进行降维，即分解成多个低维的空间，分而治之。假如我们有\(V\)的直和分解</p> \[V = U_1\oplus\dots\oplus U_m\] <p>那么这一目标就自然的完成了。然而事情没有那么简单，一个线性变换映射 \(U_i\) 中的元素最终不一定落在 \(U_i\) 中，那我们就没有办法将该变换仅限制在这个子空间(记为\(T\|_{U_i}\))，这也就自然的引出了不变子空间的定义：</p> <p><strong>定义5.A.1:不变子空间</strong>(invariant subspace)</p> <p>给定 \(T\in\mathbb{L}\)，一个向量空间 \(V\) 的子空间 \(U\) 称为不变子空间，若 \(u\in U\implies u\in Tu\).</p> <p>显然 \(V\) 本身，\(V\) 的核空间和像空间都是不变子空间，但它们并不一定能保证给我们不平凡的不变子空间。根据由简至繁的原则，我们下一步首先要研究的就是一维不变子空间，而这也就自然的引入了线性代数应用最广泛的概念之一——特征值与特征向量。</p> <p>相信读者可以自行写出一维不变子空间的情形，即 \(U=\{\lambda v:\lambda\in F\},v\ne0\) 且 \(Tv=\lambda v\)，这意味着我们将线性变换作用到该子空间的一个向量中，效果是伸长/缩短该向量的长度。这件事情并不平凡，足以让我们给他们一个单独取一个名字。</p> <p><strong>定义5.A.2：特征值</strong>(eigenvalue)，对应上文的 \(\lambda\)</p> <p><strong>定义5.A.3：特征向量</strong>(eigenvector)，对应上文的 \(v\)</p> <p>这是大家十分熟悉的概念了，不再详述定义。</p> <p><strong>定理5.A.1：对应不同特征值的特征向量是线性无关的</strong></p> <p>不难证明，对应不同特征值的特征向量是线性无关的（反证法+作用线性变化+使用不同特征值条件），也就告诉了我们有限维空间特征值的个数至多是空间维数多个。</p> <p>那么接下来一个自然的问题是，性质如此之好的一维不变子空间是不是总存在呢？这就引出了下一节的内容。</p> <h3 id="5b-特征向量与上三角矩阵">5.B 特征向量与上三角矩阵</h3> <p>为了回答上文的问题，我们需要一些多项式技术。</p> <p><strong>定义5.B.1:</strong> 线性变换的多项式</p> \[p(z)=a_0+a_1z+\dots+a_m z^m, z\in F\\ p(T)=a_0I+a_1T+\dots+a_m T^m, T\in \mathcal{L} \\ (pq)(T)=p(T)q(T)=q(T)p(T)\] <p>利用代数基本定理和刚才定义的线性变换的多项式我们就可以证明复向量空间的一个重要结论：</p> <p><strong>定理5.B.1:有限维非0的复向量空间上的线性变换一定有一个特征值</strong></p> <p>证明概要：考虑 \(v\in V,v\ne0\), 那么:</p> \[v,Tv,\dots,T^n v\] <p>必然线性相关，由代数基本定理可得</p> \[0=a_0v+\dots+a_n T^n v = c(T-\lambda_1I)\dots(T-\lambda_mI)v\] <p>推得 \(T\) 至少有一个特征值。</p> <blockquote> <p>代数基本定理的证明有许多方法，本人比较熟悉的是利用复变函数中的最大模原理。限于本文目的，不再多言。</p> </blockquote> <p>至此我们回答了特征值是否存在的问题，这是一件很重要的事情，为我们下面研究整个线性变化提供了强大的工具。在给出下一个结论前，我们需要回到线性变换的矩阵表示：</p> <p><strong>定义5.B.1：线性变换的矩阵\(\mathcal{M}(T)\)</strong></p> <p>若 \(T\in\mathcal{L}(V)\), \(v_1,\dots,v_n\) 是一组基。那么相对于这组基下 \(T\) 的矩阵表示就可以写为</p> \[\mathcal{M}(T)= \begin{pmatrix} A_{1,1}&amp;\dots&amp; A_{1,n}\\ \vdots &amp; &amp; \vdots\\ A_{n,1} &amp; \dots &amp; A_{n,n} \end{pmatrix}\] <p>其中 \(A_{j,k}\) 由下式定义</p> \[Tv_k=A_{1,k}v_1+\dots+A_{n,k}v_n\] <blockquote> <p>这实际上和线性映射的矩阵定义完全一致，第 \(i\) 列元素的取值实际上考虑如何将 \(Tv_i\) 在新的基下线性表示。这十分自然的告诉我们究竟该如何定义、理解矩阵乘法，感兴趣或者有困惑的读者可参阅原书第三章。</p> </blockquote> <p>研究一个线性变换可以一定程度上变成研究给定一组基下的矩阵。那么如何研究矩阵呢？我们的想法还是前文再三提到的由简至繁，一个自然的想法是矩阵越简单越好，即0元素越多越好。</p> <p>相信读者已经隐约有所感觉，我们在本章发展的工具一定程度上能回答这个问题了。一个特征向量 \(v\) 在 \(T\) 作用下不就是 \(\lambda v\) 吗，那这一列元素只有一个是 \(\lambda\) ，其他都是0，这也就带来了下一个重要定理：</p> <p><strong>定理5.B.2：有限维复向量空间线性变换 \(T\) 的矩阵在某个基下一定是上三角的</strong></p> <p>原书给了两个证明，后一个证明是我在写本节时才看的，感觉更加优雅且与本文上文更加契合，简述如下：</p> <p>对维数归纳。定理5.B.1告诉我们至少有一个特征向量和对应的不变子空间，记为 \(v_1,U\). 那么考虑商空间 \(T/U\)，有归纳假设知该商空间存在上三角矩阵，即</p> \[(T/U)(v_j+U)\in\text{span}(v_2+U,\dots,v_j+U),j=2,\dots,n\] <p>进而得到 \(Tv_j\in\text{span}(v_1,\dots,v_j)\).</p> <p>此时聪明的读者可能会有新的想法，如果 \(T\) 的特征值有空间维数多个，用这些特征向量作为基组成的矩阵每一列不就只有一个非0元了吗，这个矩阵就会更优美，这也就引出了下一节的内容：</p> <h3 id="5c-特征空间与对角矩阵">5.C 特征空间与对角矩阵</h3> <p>在介绍对角矩阵之前我们要先引入特征空间的概念（这个概念在后几章的内容中会启着至关重要的作用）：</p> <p><strong>定义5.C.1：特征空间 \(E(\lambda,T)\)</strong></p> <p>线性变换 \(T\) 有特征值 \(\lambda\) ，那么其对应的特征空间为</p> \[E(\lambda,T)=\text{null}(T-\lambda I)\] <p>即该空间包含了对应该特征值的所有特征向量。由定理5.A.1可知所有的特征空间构成了原空间的直和。下一个定理告诉了我们这与对角矩阵（上文提到的更优美的矩阵）的关系：</p> <p><strong>定理5.C.1：对角化矩阵的等价条件</strong></p> <p>给定空间 \(V\), 线性映射 \(V\), \(\lambda_1,\dots,\lambda_m\)为不相同的特征值。以下条件是等价的：</p> <ol> <li> <p>\(T\) 可对角化(即存在一组基下表示为对角矩阵)</p> </li> <li> <p>\(V\) 存在由 \(T\) 的特征向量组成的基</p> </li> <li> <p>存在 \(n\) 个一维子空间使得 \(V\) 为它们的直和</p> </li> <li> <p>\(V\) 为所有特征空间的直和</p> </li> <li> \[\dim V=\dim E(\lambda_1,T)+\dots+\dim E(\lambda_m,T)\] </li> </ol> <p>该定理的一个直接推论就是我们想要的结果，同时作为本章内容的收尾。</p> <p><strong>定理5.C.2：如果 \(T\) 有空间维数多个不同特征值，则 \(T\) 可对角化</strong></p> <h2 id="6-内积空间">6 内积空间</h2> <p>由于我预设读者具有线性代数的基础知识，本章的许多定义定理和方法如内积、规范正交基、Gram-Schmidt正交化等内容都将略去不表，只讲我觉得大家可能不知道的、我认为有趣的、与之后章节密切相关的内容。</p> <p><strong>定理6.1 Cauchy-Schwarz 不等式：\(\|\langle u,v\rangle\|\le\|u\|\|v\|\)</strong></p> <p>许多经典不等式都是该不等式的特例(如高中时代喜闻乐见的柯西不等式)，见原书6.17.</p> <p><strong>定义6.1：线性函数</strong> (linear functional)</p> <p>一个 \(V\) 上的线性函数是从 \(V\) 到 \(F\) 的线性映射。</p> <p>介绍这个定义的目的是引出我认为本章最有趣的结论：</p> <p><strong>定理6.2：里斯表示定理</strong> (Riesz Representation Theorem)</p> <p>有限维向量空间 \(V\) 下任何一个线性函数 \(\varphi\) 可以唯一表示成与某一个向量的内积，即</p> \[\varphi(v)=\langle v, u\rangle,\forall v\in V\] <p>将 \(v\) 写成某一组正交基的线性表示加上线性映射的性质可以很容易的证明该定理，故略去证明。</p> <p><strong>定义6.2 正交补</strong> (orthogonal complement)</p> <p>一个 \(V\) 中的子集的补由正交该子集所有向量的向量构成，即</p> \[U^{\perp}=\{v \in V:\langle v, u\rangle=0 ,\forall u \in U\}\] <p>联想到立体几何中的线面垂直和面面垂直，不难理解该概念。</p> <p>可以证明，子空间和它的补空间自然的构成了原空间的一个直和分解，由这个分解可以自然的定义出下面一个概念：</p> <p><strong>定义6.3 正交投影</strong> (orthogonal projection)</p> <p>\(v=u+w,u\in U, w\in U^{\perp}\), 记 \(P_Uv=u,P_{U^\perp}=w.\)</p> <p>关于正交补和正交投影的相关性质请有兴趣的读者参阅原书，书中列举的基本性质都是平凡的。</p> <p>正交投影其实和我们平常所感觉的投影的概念基本相同，即点在平面上的垂线段。我们都知道垂线段举例最短，这可以推广为如下定理：</p> <p><strong>定理6.3：垂线段最短定理</strong> (来自本人的命名…)</p> <p>假设 \(U\) 是一个 \(V\) 的有限维子空间，那么</p> \[\|v-P_Uv\|\le\|v-u\|\] <p>将 \(v\) 写成该空间和补空间的直和形式，证明是显然的。</p> <p><strong>定理6.4：舒尔定理</strong> (Schur’s Theorem)</p> <p>有限维复向量空间 \(V\) 中的线性变换 \(T\) 一定有相对于某组正交基的上三角矩阵。</p> <p>由定理5.B.2和我们熟知的Gram-Schmidt正交化过程可直接导出该结论。</p> <p>匆匆掠过本章，我们已经有了足够的工具开始下一章，也是我认为最有趣的一章内容的学习。</p> <h2 id="7-内积空间中的算子">7 内积空间中的算子※</h2> <p>这一章我们将详细研究内积空间中的算子，我们会看到大家平时经常听到的<strong>谱定理、奇异值分解</strong>在线性代数理论里的位置。</p> <blockquote> <p>从本章开始的内容应该是大部分读者没有接触过的了，难度和陌生度显著提升，我会适当增加摘要内容帮助<strong>我自己</strong>和读者的理解。如果你觉得对略去的证明和内容感兴趣或者觉得我讲的太跳，请参阅原书第7章，或者在评论中告知。</p> </blockquote> <blockquote> <p>算子基本上就是线性变换，从本章开始我大概率会使用算子(operator) 这个词，原因不明。</p> </blockquote> <h3 id="7a-伴随与正规算子">7.A 伴随与正规算子</h3> <blockquote> <p>这里的伴随和大家上课学到的伴随矩阵大概率没有关系。</p> </blockquote> <p><strong>定义7.A.1：伴随，\(T^*\)</strong> (adjoint)</p> <p>\(T\in\mathcal{L}(V,W)\) \(T\) 的伴随是 \(T^*: W\to V\) 使得</p> \[\langle Tv,w\rangle=\langle v, T^* w\rangle,\forall v\in V, \forall w\in W\] <p>伴随的存在性由里斯表示定理保证。</p> <p><strong>例7.A.1</strong></p> <p>固定 \(u\in V,x\in W\), 定义 \(T\in\mathcal{L}(L,W)\)</p> \[Tv=\langle v,u\rangle x\] <p>不难证明 \(T^*w=\langle w,x\rangle u\).</p> <p>伴随这个概念十分重要，是整章内容的基础。本文在此列出部分书中给出的有关伴随性质：</p> <ul> <li> <p>伴随本身构成了线性映射</p> </li> <li> \[(T^*)^*=T\] </li> <li> \[\text{null } T^*=(\text{range }T)^{\perp}\] </li> </ul> <p>既然伴随本身就是线性映射，那么一个自然的问题是它的矩阵表示跟原线性映射的矩阵表示有什么关系，而在内积空间中使用正交基显然更有可能使问题简化，于是我们有如下结论：</p> <p>\(T\in\mathcal{L}(V,W)\), \(e_1,\dots,e_n\) 是 \(V\) 中一组<strong>正交基</strong>， \(f_1,\dots,f_m\) 是 \(W\) 一组<strong>正交基</strong>，那么伴随的矩阵表示</p> \[\mathcal{M}\left(T^{*},\left(f_{1}, \ldots, f_{m}\right),\left(e_{1}, \ldots, e_{n}\right)\right)\] <p>是原矩阵表示的<strong>共轭转置</strong>(conjugate transpose).</p> \[\mathcal{M}\left(T,\left(e_{1}, \ldots, e_{n}\right),\left(f_{1}, \ldots, f_{m}\right)\right)\] <p>读者将两个矩阵每一项写出来即可证明该结论。</p> <p>考虑到我们的目的是研究算子，即线性变换而不是一般性的线性映射，所以我们考虑一种特殊的伴随，即该算子本身就是自己的伴随：</p> <p><strong>定义7.A.2 自伴算子</strong> (self-adjoint)</p> <p>若 \(T=T^*\), 即 \(\langle Tv,w\rangle=\langle v,Tw\rangle\)，则称算子 \(T\) 是自伴的</p> <blockquote> <p>有些书中自伴算子/矩阵表示又称为厄米算符/厄密矩阵(Hermitian matrix) ，这个词读者可能会更熟悉。</p> </blockquote> <p>在给出一个新的概念后我们自然要关注它的基本性质：</p> <p><strong>定理7.A.1 自伴算子的性质</strong></p> <ol> <li>自伴算子的特征值是实的 \(\lambda\|v\|^{2}=\langle\lambda v, v\rangle=\langle T v, v\rangle=\langle v, T v\rangle=\langle v, \lambda v\rangle=\bar{\lambda}\|v\|^{2}\)</li> <li>若自伴算子满足 \(\langle Tv,v\rangle=0,\forall v\)，那么 \(T=0\) 注意复内积空间下任何算子都满足该性质</li> <li>复内积空间下 \(T\) 是自伴的等价于 \(\langle Tv,v\rangle\in R\)</li> </ol> <p>自伴算子看起来就是一个很强的性质，它要求 \(T\) 和 \(T^*\) 是一回事。有些时候我们不需要这么强的版本，下面我们介绍一个稍微弱化的情况，即要求 \(T\) 和 \(T^*\) 是可交换的：</p> <p><strong>定义7.A.3 正规算子</strong> (normal)</p> <p>若算子 \(T\) 满足 \(TT^* = TT^*\)，则称算子 \(T\) 是正规的</p> <p>显然，自伴算子一定是正规的。</p> <p><strong>定理7.A.2 正规算子的性质</strong></p> <ol> <li> <p>\(T\) 是正规的当且仅当 \(\|Tv\|=\|T^*v\| \Longleftrightarrow T^*T-TT^*=0\\\Longleftrightarrow \langle(T^*T-TT^*)v,v\rangle=0\text{ 定理7.A.1(2)} \\ \Longleftrightarrow \langle T^*Tv,v\rangle=\langle TT^*v,v\rangle\\\Longleftrightarrow \|Tv\|=\|T^*v\|\)</p> </li> <li> <p>如果 \(T\) 是正规的，那么 \(T\) 与 \(T^*\) 有相同的特征向量和共轭的特征值 注意到 \(T-\lambda I\) 也是正规的，由(1)可直接推得结论</p> </li> <li> <p>正规算子下对应不同特征值的特征向量是正交的 \(Tu=\alpha u, Tv=\beta v\)，则由(1)知 \(T^*v=\bar\beta v\) \((\alpha-\beta)\langle u,v\rangle=\langle Tu,v\rangle-\langle u,\bar\beta v\rangle\) \(=\langle Tu,v\rangle-\langle u,T^*v\rangle=0\) 该性质十分重要，它实际上呼应了上下文特征向量同时正交的要求</p> </li> </ol> <p>如果读者对自伴算子和正规算子的概念和性质感到困惑和诧异，这是十分正常的，因为这两个概念与谱定理密不可分。所以请往下读。</p> <h3 id="7b-谱定理-the-spectral-theorem-">7.B 谱定理 (The Spectral Theorem) ※</h3> <p>从第五章的研究过程我们已经发现了，简化矩阵表示是十分重要的。第五章中的对角矩阵来自于由特征向量组成的基，那么在内积空间中我们自然会想使用正交基，那要是这些特征向量同时是正交向量的话，这个矩阵的性质就再好不过了。谱定理告诉我们这是可以做到的！</p> <p>当然，显然不是所有算子都有这么好的性质，而对算子性质的要求其实就是上一节我们讨论的正规算子(复数域)和自伴算子(实数域)。我们在上一章讨论的性质在以下两个定理的证明中会派上用场。</p> <p><strong>定理7.B.1 复谱定理</strong></p> <p>若 \(F=C, T\in V\), 那么下列条件是等价的：</p> <ol> <li> <p>\(T\) 是正规的</p> </li> <li> <p>\(V\) 中存在一组正交基构成 \(T\) 的特征向量</p> </li> <li> <p>\(T\) 存在相对于某组正交基的对角矩阵</p> </li> </ol> <p>证明概要：(2)与(3)显然等价。假设(3)成立，那么 \(T\) 与 \(T^*\) 都是对角矩阵，显然 \(TT^*=T^*T\)，\(T\) 是正规的，(1)成立。 假设(1)成立，根据第6章的舒尔定理，存在一组正交基使得矩阵表示为上三角矩阵，即</p> \[\mathcal{M}(T,(e_1,\dots,e_n))= \begin{pmatrix} a_{1,1} &amp; \dots &amp; a_{1,n}\\ &amp; \ddots &amp; \vdots \\ 0 &amp; &amp; a_{n,n} \end{pmatrix}\] <p>我们证明这个矩阵实际上是对角矩阵。由于</p> \[\|Te_1\|^2=|a_{1,1}|^2, \|T^*e_1\|^2=|a_{1,1}|^2+\dots+|a_{1,n}|^2\] <p>而 \(T\) 的正规性性质告诉我们 \(\|Te_1\|=\|T^*e_1\|\)，这就说明了第一行只有除了第一个元素都是0. 而在证明给 \(a_{1.2}=0\) 后，我们可以发现对于 \(Te_2\) 也可以用相同的方法证明第二行其他元素也都为0，重复该过程，即可证明定理。</p> <p>直觉来说线性代数中实数的性质不如复数，所以实谱定理要求的算子的性质也要更好，即要求自伴算子而不仅仅是正规算子。</p> <p>实谱定理的证明较为麻烦，需要一些引理且篇幅较长，其目的可以看作是给出实空间下自伴算子特征值和对于不变子空间（注意到复谱定理的简洁来自于舒尔定理，根属于代数基本定理保证了特征值存在）。 本文略过证明，仅述结论：</p> <p><strong>定理7.B.2 实谱定理</strong></p> <p>若 \(F=R, T\in V\), 那么下列条件是等价的：</p> <ol> <li> <p>\(T\) 是自伴的</p> </li> <li> <p>\(V\) 中存在一组正交基构成 \(T\) 的特征向量</p> </li> <li> <p>\(T\) 存在相对于某组正交基的对角矩阵</p> </li> </ol> <blockquote> <p>谱定理给出了有限维实/复内积空间算子可在正交基下对角化的充要条件，读者从原书部分习题中可以感受到谱定理的强大。</p> </blockquote> <p>读者在感叹谱定理的奇妙同时，可能也会想能不能有一种情况不需要什么算子条件也能得到对角矩阵。当然由谱定理的充要性我们知道这是不现实的。所以为了达成这个目的，我们要放弃一些东西——矩阵表示使用同一组基。</p> <p>注意到至此我们考虑的都是映射两端用相同的基，那么如果允许使用不同的基呢，我们能得到对角矩阵吗，用的基是我们所期待的内积空间的正交基吗？这也就是奇异值分解要告诉我们的。为此，我们同样需要一些基础的算子，即下一节：</p> <h3 id="7c-正算子与等距同构">7.C 正算子与等距同构</h3> <p>7.C, 7.D的架构看起来与7.A, 7.B十分相似，即定义特殊的算子，然后在这样满足一定性质的算子基础上叙述某一重要的定理。</p> <p><strong>定义7.C.1：正算子</strong> (positive operator)</p> <p>若 \(T\) 是自伴算子且满足 \(\langle Tv,v\rangle\ge0\), 则我们称 \(T\) 是正的 复内积空间下该定义的良性由定理7.A.1(3)保证。</p> <blockquote> <p>一些书中的半正定算子(positive semidefinite operator) 和正算子是一回事。</p> </blockquote> <p><strong>例7.C.1：投影算子是正算子</strong></p> <p><strong>定义7.C.2：平方根</strong> (square root)</p> <p>若算子 \(R^2=T\), 则称 \(R\) 是 \(T\) 的平方根</p> <p>类似的，我们也需要一些关于正算子和平方根的性质来帮助我们更好的理解这些概念：</p> <p><strong>定理7.C.1 正算子的性质</strong></p> <p>下列条件是等价的：</p> <ol> <li> <p>\(T\) 是正的</p> </li> <li> <p>\(T\) 是自伴且所有特征值非负 这告诉了我们正算子和自伴算子的联系</p> </li> <li> <p>\(T\) 有正平方根</p> </li> <li> <p>\(T\) 有自伴平方根</p> </li> <li> <p>存在算子 \(R\) 满足 \(T = R^*R\)</p> </li> </ol> <blockquote> <p>本节我可能会给出比较多的证明概要/内容，因为我自己忘得差不多了，再加上这些证明本身也较为自然和有用，读者可自行证明，也可看看本文概要，当然也可不管。</p> </blockquote> <p>证明概要： (1)推(2)是显然的。 (2)推(3)：由于 \(T\) 是自伴的，谱定理保证存在特征向量构成的正交基 \(e_1,\dots,e_n\) 和对应的特征值 \(\lambda_1,\dots,\lambda_n\), 非负保证了可定义 \(Re_j=\sqrt{\lambda_j}e_j\) ，不难证明 \(R\) 即是 \(T\) 的正平方根。 利用该方法不难推得正平方根是唯一的，记作 \(\sqrt{T}\). (3)推(4)是显然的。 (4)推(5)是显然的，因为自伴意味着 \(R^*R=R^2=T\). (5)推(1)：\(T^*=(R^*R)^*=R^*R=T\) 可知自伴，\(\langle Tv,v\rangle=\langle Rv,Rv\rangle\ge0\)</p> <p>另一方面，保持范数的算子十分重要，它值得一个单独的名字：</p> <p><strong>定义7.C.3：等距同构</strong> (isometry)</p> <p>若算子 \(S\in\mathcal{L}(T)\) 满足 \(\|Sv\|=\|v\|\)，则称 \(S\) 是等距同构</p> <p><strong>定理7.C.2 等距同构的性质</strong></p> <p>下列条件是等价的：</p> <ol> <li> <p>\(S\) 是等距同构</p> </li> <li> \[\langle Su,Sv\rangle = \langle u, v\rangle\] </li> <li> <p>\(V\) 的一组正交基在等距同构作用下依旧正交</p> </li> <li> \[S^*S=SS^*=I\] </li> <li>\(S^*\) 是等距同构</li> </ol> <p>证明概要： (1)推(2)：</p> \[\begin{aligned} \langle S u, S v\rangle &amp;=\left(\|S u+S v\|^{2}-\|S u-S v\|^{2}\right) / 4 \\ &amp;=\left(\|S(u+v)\|^{2}-\|S(u-v)\|^{2}\right) / 4 \\ &amp;=\left(\|u+v\|^{2}-\|u-v\|^{2}\right) / 4 \\ &amp;=\langle u, v\rangle \end{aligned}\] <p>(2)推(3)是显然的。 (3)推(4)：若有 \(e_1,\dots,e_n\) 正交基，那么</p> \[\langle S^*Se_j,e_k\rangle=\langle e_j,e_k\rangle=0,i\ne k\] <p>不难证明 \(S^*S\) 只能是 \(I\). (4)推(5)：注意到 \(\|S^*v\|^2=\langle SS^*v,v\rangle\) (5)推(1)：从(4)的对称性不难看出</p> <p>由该定理我们很容易可以证明下定理：</p> <p><strong>定理7.C.3 复内积空间下等距同构的描述</strong></p> <p>若 \(V\) 是复内积空间且 \(S\in\mathcal{L}(V)\)，那么 \(S\) 是等距同构当且仅当存在一组由 \(S\) 的特征向量构成的正交基，且特征值绝对值为1</p> <p>实内积空间下的情况要等到第9章我们才会回答。</p> <p>有了这些准备，我们最终可以开始本章最后一节内容：</p> <h3 id="7d-极分解polar-decomposition与奇异值分解-singular-value-decomposition-">7.D 极分解(Polar Decomposition)与奇异值分解 (Singular Value Decomposition) ※</h3> <p>经过漫长的旅程，我们终于快来到著名的<strong>奇异值分解</strong>。在此之前，我们先看看极分解是怎么一回事，它实际上告诉我们一个算子<strong>总是</strong>可以分解为等距同构和一个正算子的乘积：</p> <blockquote> <p>原书中的类比：复数 \(z\) 满足 \(z=(\frac{z}{\|z\|})\|z\|=(\frac{z}{\|z\|})\sqrt{\bar zz}\).</p> </blockquote> <p><strong>定理7.D.1 极分解</strong></p> <p>若 \(T\in\mathcal{L}(V)\) , 那么存在等距同构使得 \(S\in\mathcal{L}(V)\) 使得</p> \[T=S\sqrt{T^*T}\] <p>证明概要：</p> <ol> <li> \[\|Tv\|=\|\sqrt{T^*T}v\|\] </li> <li> <p>定义 \(S_1:\text{range }\sqrt{T^*T}\to\text{range }T\) 为 \(S_1(\sqrt{T^*T}v)=Tv\)，这是良定义的(利用(1))，是线性映射，是单射</p> </li> <li>考虑 \(\text{range}\sqrt{T^*T}^\perp\)，将 \(S_1\) 拓展至我们需要的 \(S\).</li> </ol> <p>因此我们可以将 \(V\) 上的<strong>任意</strong>算子写作两个算子的乘积(即正算子和等距同构)，而这两个算子又可以被我们完全理解。等距同构的描述由定理7.C.3给出，正算子的描述由谱定理给出。要注意的是在复域情况下正算子和等距同构都各自有一组正交基使其为对角矩2阵，但这两组基可能并不相同。</p> <blockquote> <p>上面这段话和下面一些话完全从原书翻译而来，因为我觉得写的真的很好！</p> </blockquote> <p><strong>定义7.D.1 奇异值</strong></p> <p>算子 \(T\) 的奇异值即即为 \(\sqrt{T^*T}\) 的特征值</p> <p>奇异值一定是非负的。注意每一个有限维空间上的算子都有维数多个奇异值(考虑重数)，这可以看作谱定理作用到正算子的结果。</p> <p>最后，我们要证明奇异值定理——每一个 \(V\) 上算子都可以用它的奇异值和两个。我们可以看到，之前的努力(谱定理，极分解及前面诸多概念定理) 是值得的：</p> <p><strong>定理7.D.2 奇异值分解</strong></p> <p>若 \(T\in\mathcal{L}(V)\) 有奇异值 \(s_1,\dots,s_n\)，那么存在正交基 \(e_1,\dots,e_n\) 和 \(f_1,\dots,f_n\) 使得</p> \[Tv=s_1\langle v,e_1\rangle f_1+\dots+ s_n\langle v,e_n\rangle f_n\] <p>证明：对 \(\sqrt{T^*T}\) 使用谱定理我们可以得到存在特征向量构成的正交基 \(e_1,\dots,e_n\) 满足 \(\sqrt{T^*T}e_j=s_je_j\), 由正交基的基本性质得到</p> \[v=\langle v,e_1\rangle e_1+\dots+\langle v,e_n\rangle e_n\] <p>等式两边作用 \(\sqrt{T^*T}\) 可以得到</p> \[\sqrt{T^*T} v = s_1\langle v,e_1\rangle e_1+\dots+s_n\langle v,e_n\rangle e_n\] <p>由极分解定理我们知道存在等距同构满足 \(T=S\sqrt{T^*T}\), 两边作用该算子我们得到（等距同构保持正交性）</p> \[Tv=s_1\langle v,e_1\rangle Se_1+\dots+ s_n\langle v,e_n\rangle Se_n\\=s_1\langle v,e_1\rangle f_1+\dots+ s_n\langle v,e_n\rangle f_n\] <p>Q.E.D.</p> <p>当我们在谈论算子时，我们总是习惯使用同一组基。而奇异值分解让我们可以很好的使用两个基来研究算子。接上文定义，因为 \(Te_j=s_if_j\), 我们可以发现</p> \[\mathcal{M}\left(T,\left(e_{1}, \ldots, e_{n}\right),\left(f_{1}, \ldots, f_{n}\right)\right)=\left(\begin{array}{ccc} s_{1} &amp; &amp; 0 \\ &amp; \ddots &amp; \\ 0 &amp; &amp; s_{n} \end{array}\right)\] <p>综上所述，奇异值分解回答了我们在7.B谱定理一节中提出的问题，即允许使用两组基从而使矩阵对角。而奇异值分解本身在各个领域也有着极大的应用，相信读者在今后碰到时不会陌生，能理解其理论基础。</p> <h2 id="8-复向量空间中的算子">8 复向量空间中的算子</h2> <p>本章我们回到复向量空间，考虑其上的算子结构。虽然我们没有了内积这一个强大的工具，但同样可以通过别的技术发展出一套强大的方法——若当标准型来描述算子的结构。</p> <p>简单来说，我们最终可以证明任意一个复线性空间的算子在某组基下都可以表示成对角块的形式，即</p> \[\begin{pmatrix} A_1 &amp; &amp; 0\\ &amp; \ddots &amp; \\ 0 &amp; &amp; A_p \end{pmatrix}\] <p>每一个块 \(A_j\) 都是如下形式的矩阵</p> \[A_j =\begin{pmatrix} \lambda_j &amp; 1 &amp; &amp; 0\\ &amp; \ddots &amp; \ddots &amp; \\ &amp; &amp; \ddots &amp; 1 \\ 0 &amp; &amp; &amp; \lambda_j\\ \end{pmatrix}\] <p>可以发现这个矩阵和我们理想的对角矩阵即为相近，为此我们有一段更漫长的路要走。首先，让我们回到并扩展第5章的核心概念——特征值/向量：</p> <h3 id="8a-广义特征向量与幂零算子">8.A 广义特征向量与幂零算子</h3> <p>从第5章我们可以知道，许多算子没有足够多的特征向量支撑成一组基，无法完成对任意给定算子 \(T\) 利用不变子空间进行降维，即</p> \[V=U_1\oplus\dots\oplus U_m\] <p>每一个 \(U_i\) 都是 \(T\) 一个不变子空间。最简单优雅的情况是每一个 \(U_i\) 都是一维的，这样我们可以自信的说我们完全搞清楚该算子的结构了。这种情况当且仅当 \(V\) 有一组由特征向量构成的基，当且仅当 \(V\) 有特征空间的直和分解，即</p> \[V = E(\lambda_1,T)\oplus\dots\oplus E(\lambda_m,T)\] <p>谱定理告诉我们内积空间下这样的分解在复数域下对正规算子存在，实数域下对自伴算子存在。然而这样的分解一般情况下不一定存在，考虑一个简单的例子：\(T(w,z)=(z,0)\)，读者可以自行验证。而广义的特征值和广义的特征空间可以解决这个问题。</p> <blockquote> <p>这几段话还是翻译原文的。</p> </blockquote> <p>我们知道特征向量是 \(T-\lambda I\) 的零点，那么一个自然的想法是略微改动这个式子，使得它能出现更多的零点。回想到核空间的概念，我们知道 \(0\) 映射后还是 \(0\)，而其他向量则有可能映射到 \(0\)，成为核空间的一部分。而在它们成为核空间的一部分之后，无论作用多少次映射，它都是核空间的一部分了。这段话其实是在说，我们可以讨论幂次映射的零点，这就引出了定义：</p> <p><strong>定义8.A.1：广义特征向量</strong> (generalized eigenvector)</p> <p>若 \(T\in\mathcal{L}(V)\) 且 \(\lambda\) 是 \(T\) 的一个特征值。那么若向量 \(v\) 满足</p> \[(T-\lambda I)^jv=0, j\in N^+\] <p>我们称 \(v\) 是 \(T\) 的广义特征向量。(为什么我们不需要广义特征值呢？) 相应的，\(G(\lambda,T)\) 即为广义特征空间。</p> <p>在继续之前，我们需要简单讨论一下核空间在幂次下的性质，总结如下：</p> <p><strong>定理8.A.1：幂次算子下的核空间性质</strong></p> <ol> <li> \[\{0\}=\text{null }T^0\subset\text{null }T^1\subset\dots\subset\text{null }T^k\subset\dots\] </li> <li> <p>\(n\) 为空间维数，那么 \(\text{null }T^n=\text{null }T^{n+1}=\dots\)</p> </li> <li> \[V=\text{null }T^n\oplus\text{range }T^n\] </li> </ol> <p>这告诉我们 \(G(\lambda,T)=\text{null }(T-\lambda I)^{\dim V}\).</p> <p>我们知道对应不同特征值的特征向量之间线性无关，这是一切的基础，因为只有这样才有可能组成一组基。那么广义特征向量自然也要满足：</p> <p><strong>定理8.A.2：对应于不同特征值的广义特征向量线性无关</strong></p> <p>证明略</p> <p>幂次最终为0的算子也很重要，它值得一个名字：</p> <p><strong>定义8.A.2：幂零算子</strong> (nilpotent)</p> <p>若一个算子的某个幂次为0，我们称该算子为幂零算子</p> <p>不知道读者是否发现，我们在给出一个算子后经常要讨论它的矩阵表示，幂零算子也是如此。</p> <p><strong>定理：8.A.3：幂零算子的矩阵表示</strong></p> <p>若 \(N\) 为幂零算子，则存在一组基使得 \(N\) 矩阵表示为对角线为0的上三角矩阵：</p> \[\begin{pmatrix} 0 &amp; &amp; * \\ &amp; \ddots &amp; \\ 0 &amp; &amp; 0 \end{pmatrix}\] <p>证明概要：首先选择 \(\text{null }N\) 的一组基，然后扩展成 \(\text{null }T^2\) 的一组基，直至扩展成 \(\text{null }N^{\dim V}\) 的一组基(\(\text{null }N^{\dim V}=V\)). 不难证明，这组基下的矩阵就是符合要求的。</p> <h3 id="8b-算子的分解">8.B 算子的分解</h3> <p>正如上一节所言，本节我们会看到每一个有限维复向量空间上的算子都有足够的广义特征向量能构成直和分解。</p> <p><strong>定理8.B.1</strong></p> <p>若 \(T\) 是 \(V\) 是复向量空间内算子，\(\lambda_1,\dots,\lambda_m\) 为所有不同的特征值，那么</p> <ol> <li> \[V= G(\lambda_1,T)\oplus\dots\oplus G(\lambda_m,T)\] </li> <li> <p>每一个 \(G(\lambda_j,T)\) 在 \(T\) 下是不变的</p> </li> <li>每一个 \((T-\lambda_j I)\|_{G(\lambda_j,T)}\) 是幂零的</li> </ol> <p>证明：(2)与(3)由 \(G(\lambda_j,T)=\text{null }(T-\lambda_j I)^n\) 是显然的。我们通过数学归纳法证明(1). \(n=1\) 是显然的。</p> <p>\(n&gt;1\) 时，复向量空间保证了至少有特征值 \(\lambda_1\) 的存在，由定理8.A.1(3)我们知道 \(V=G(\lambda_1,T)\oplus U,U=\text{range}(T-\lambda_1 I)^n\). 不难证明 \(U\) 在 \(T\) 作用下是不变的，由归纳假设 \(U=G(\lambda_2,T\|_U)\oplus\dots\oplus G(\lambda_m,T\|_{U})\)，读者不难根据广义特征向量线性无关证明 \(G(\lambda_k,T)\subset G(\lambda_k,T\|_U)\)，从而推得 \(G(\lambda_k,T)= G(\lambda_k,T\|_U)\).</p> <p>定理8.B.1(1)告诉我们了存在足够的广义特征向量来张成整个空间。</p> <p><strong>定义8.B.1：重数</strong></p> <p>特征值的重数为对应广义特征空间的维数</p> <blockquote> <p>我们常用的代数重数即为这里的重数，为广义特征空间的维数</p> <p>而几何重数则是特征空间的维数</p> </blockquote> <p>那么一个自然的问题是，这个结论之下的矩阵表示是怎么样的呢？ 其实已经可以看出来了。 \(V\) 能分解成广义特征空间的直和，所以会有对角块的形式，每一个块 \(T|_{G(\lambda_j,T)}=(T-\lambda_j I)|_{G(\lambda_j,T)}+\lambda_j I|_{G(\lambda_j,T)}\) 即为一个幂零算子和单位矩阵的加和，即</p> \[A_{j}=\left(\begin{array}{ccc} \lambda_{j} &amp; &amp; * \\ &amp; \ddots &amp; \\ 0 &amp; &amp; \lambda_{j} \end{array}\right)\] <p>可以发现和本章引言的约当型还是有些区别的，不过这个结论也足够强大，而且是后面简化的基础。</p> <h3 id="8c-特征多项式和极小多项式">8.C 特征多项式和极小多项式</h3> <blockquote> <p>本节仅述一小部分</p> </blockquote> <p><strong>定义8.C.1：特征多项式</strong></p> <p>若 \(V\) 是复向量空间，假设 \(\lambda_1,\dots,\lambda_m\) 是算子 \(T\) 的不同特征值，重数分别是 \(d_1,\dots,d_m\). 那多项式 \((z-\lambda_1)^{d_1}\dots(z-\lambda_m)^{d_m}\) 就称为 \(T\) 的特征多项式。</p> <p><strong>定理8.C.1：凯莱-哈密顿定理</strong> (Cayley-Hamilton Theorem)</p> <p>设 \(q\) 是复向量空间中算子 \(T\) 的特征多项式，那么 \(q(T)=0\).</p> <p>证明留给读者，可将其作为上节定理8.B.1的应用。</p> <h3 id="8d-约当型-jordan-form">8.D 约当型 (Jordan Form)</h3> <p>8.B告诉我们每一个复向量空间的算子都有一组基使其构成一个不错的矩阵。这节，即本章的最后一节我们将会证明我们可以做得更好。</p> <p>8.B节我们证明了每一个对角块块 \(\|_{G(\lambda_j,T)}=(T-\lambda_j I)\|_{G(\lambda_j,T)}+\lambda_j \|_{G(\lambda_j,T)}\) 即为一个幂零算子和单位矩阵的和，单位矩阵已经是最简单的了，所以一个自然的想法是对于幂零算子，我们能不能做得更好，下面的定理告诉我们这是可以做到的：</p> <p><strong>定理8.D.1</strong></p> <p>若 \(N\) 是幂零的，那么存在一组向量 \(v_1,\dots,v_n\) 和非负整数 \(m_1,\dots,m_n\) 使得：</p> <ol> <li> <p>\(N^{m_1}v_1,\dots,Nv_1,v_1,\dots,N^{m_n}v_n,\dots,Nv_n,v_n\) 是一组基</p> </li> <li> \[N^{m_1+1}v_1=\dots=N^{m_n+1}v_n=0\] </li> </ol> <p>证明：我们对 \(\dim V\) 使用数学归纳法，\(\dim V=1\) 的时候显然成立。现假设 \(\dim V&gt;1\).</p> <p>因为 \(N\) 是幂零的，所以它既不是单射也不是满射，所以我们对 \(N\|_{\text{range }N}\) 使用归纳假设，可以得到</p> \[N^{m_1}v_1,\dots,Nv_1,v_1,\dots,N^{m_n}v_n,\dots,Nv_n,v_n\] <p>是 \(\text{range }N\) 的一组基且</p> \[N^{m_1+1}v_1=\dots=N^{m_n+1}v_n=0\] <p>而 \(v_j=Nu_j\)，所以 \(N^{k+1}u_j=N^kv_j\)，我们断言：</p> \[N^{m_1+1}u_1,\dots,Nu_1,u_1,\dots,N^{m_n+1}u_n,\dots,Nu_n,u_n (1)\] <p>是线性无关的。将上述向量张成一组基</p> \[N^{m_1+1}u_1,\dots,Nu_1,u_1,\dots,N^{m_n+1}u_n,\dots,Nu_n,u_n,w_1,\dots,w_p\] <p>\(Nw_i\in\text{range }N\)，故存在 \(x_i\in\text{span }(1),Nw_j=Nx_j\)，我们令 \(u_{n+j}=w_j-x_j\)，那么 \(Nu_{n+j}=0\)，不难发现</p> \[N^{m_1+1}u_1,\dots,Nu_1,u_1,\dots,N^{m_n+1}u_n,\dots,Nu_n,u_n,u_{n+1},\dots,u_{n+p}\] <p>即构成了一组基，又能满足我们的要求。Q.E.D.</p> <blockquote> <p>这个证明感觉有点玄妙，对于幂零算子性质利用的很好</p> </blockquote> <p>那么，这组基的矩阵是怎样的呢，对于每一个子块，算子 \(N\) 都把某一个基向量映射到这列的前一个，\(0,N^{m_j}v_j,\dots,Nv_j,v_j\)，其矩阵表示我们可以直接写出</p> \[\left(\begin{array}{cccc} 0 &amp; 1 &amp; &amp; 0 \\ &amp; \ddots &amp; \ddots &amp; \\ &amp; &amp; \ddots &amp; 1 \\ 0 &amp; &amp; &amp; 0 \end{array}\right)\] <p>联系到前面8.A.1我们就证明的结论，到这我们就给出了目前可达的复向量空间任一算子的最简矩阵表示——约当型，具体型式可见本章开头。</p> <h2 id="9-实向量空间中的算子">9 实向量空间中的算子</h2> <p>终于，我们来到本文的最后一章。本章我们会使用我们在复向量空间的结果来分析实向量空间。注意到不变子空间在线性代数中起着至关重要的作用，非0有限维复向量空间的每一个算子都有一个特征值从而有一维不变子空间，而实向量空间则有可能不存在特征值因此不存在一维不变子空间，所以下一节我们会介绍如何让实向量空间也有一个较简单的不变子空间。</p> <blockquote> <p>本章会较为简略。</p> </blockquote> <h3 id="9a-复化">9.A 复化</h3> <p>既然复空间有这么多好处，那么我们有什么办法让实空间也有这些好处呢？本节将会介绍一个自然的将实空间嵌入复空间的方法：复化。</p> <p><strong>定义9.A.1：向量空间的复化</strong></p> <p>若 \(V\)是一个实向量空间</p> <ul> <li>\(V\) 的复化记作 \(V_C\)，等价于 \(V\times V\)，我们一般写作 \(u+iv\)</li> <li> \[(u_1+iv_1)+(u_2+iv_2)=(u_1+u_2)+i(v_1+v_2)\] </li> <li> \[(a+bi)(u+iv)=(au-bv)+i(av+bu)\] </li> </ul> <p>联系到\(i^2=-1\)，乘法的定义就不难理解了，不难证明 \(V_C\) 是复向量空间，\(V\) 的一组基也是 \(V_C\) 的一组基，故其维数相同。</p> <p><strong>定义9.A.2：算子的复化</strong></p> <p>若 \(V\) 是实向量空间，\(T\in\mathcal{L}(V)\)，算子 \(T\) 的复化，记作 \(T_C\) 由下式定义： \(T_C(u+iv)=Tu+iTv\) 接下来则是本节的核心结论，也是复化最大的好处和意义：</p> <p><strong>定理9.A.1：每一个算子都有1维或2维不变子空间</strong></p> <p>复向量空间的情况是显然的。</p> <p>若 \(V\) 是实向量空间，则复化算子 \(T_C\) 一定有特征值 \(a+bi\)，那么存在 \(u,v\ne0\)： \(T_C(u+iv)=(a+bi)(u+iv)\\ Tu+iTv=(au-bv)+(av+bu)i\\ Tu=au-bv,Tv=av+bu\) 令 \(U\) 为 \(u,v\) 张成的空间，不难证明 \(U\) 即为一维或二维的不变子空间。下一节我们会看到这究竟有什么具体的好处。</p> <h3 id="9b-实内积空间上的算子">9.B 实内积空间上的算子</h3> <p>现在让我们把注意力放回到内积空间。复谱定理完全给出了复内积空间上正规算子的结构，本节我们将会描述清楚实内积空间的正规算子的结构，让我们从2维实向量空间开始：</p> <p><strong>定理9.B.1</strong></p> <p>若 \(V\) 是2维实内积空间，那么下列条件是等价的：</p> <ol> <li> <p>\(T\) 是正规的但不是自伴的</p> </li> <li> <p>\(T\) 相对于所有正交基的矩阵表示是如下形式： \(\begin{pmatrix} a &amp; -b\\ b &amp; a \end{pmatrix},b\ne0\)</p> </li> <li> <p>\(T\) 相对于某族正交基的矩阵表示是如下形式： \(\begin{pmatrix}a &amp; -b\\b &amp; a\end{pmatrix},b&gt;0\) 证明留给读者。</p> </li> </ol> <p>下一个定理告诉我们限制在不变子空间上的正规算子还是正规的，这给我们最后的定理的归纳法埋下了伏笔：</p> <p><strong>定理9.B.2</strong></p> <p>若 \(V\) 是内积空间， \(T\) 是正规算子，\(U\) 是 \(T\) 下不变子空间，那么</p> <ol> <li>\(U^\perp\) 是 \(T\) 下不变子空间</li> <li>\(U\) 是 \(T^*\) 下不变子空间</li> <li> \[(T\|_U)^*=(T^*)\|_U\] </li> <li>\(T\|_U\) 和 \(T\|_{U^\perp}\) 是正规算子</li> </ol> <p>证明概要：</p> <ol> <li> <p>利用 \(\|Te_j\|=\|T^*e_j\|\)，证明与复谱定理类似</p> </li> <li> <p>由(1)可立即得到</p> </li> <li>令 \(S=T\|_U，v\in U\), \(\langle Su,v\rangle=\langle Tu,v\rangle=\langle u,T^*v\rangle\)，而 \(T^*v\in U\)，也就说明了结论</li> <li>由(1-3)可立即得到</li> </ol> <p>来到了我们的最后一个目标：</p> <p><strong>定理9.B.3</strong></p> <p>若 \(V\)是实内积空间，\(T\) 是其上一个算子，那么下列条件等价：</p> <ol> <li>\(T\) 是正规的</li> <li>存在一组正交基使得 \(T\) 是块对角矩阵，且每个块是\(1\times1\)或者 \(\begin{pmatrix}a &amp; -b\\\\b &amp; a\end{pmatrix},b&gt;0\)</li> </ol> <p>证明：假设(2)成立，通过矩阵乘法可以立即验证 \(T\) 是正规的</p> <p>假设(1)成立，我们使用数学归纳法证明结论。\(\dim V=1\) 是平凡的，\(\dim V=2\) 由定理9.B.1和实谱定理保证。</p> <p>\(\dim V&gt;2\)，由定理9.A.1我们知道一定存在一维或二维不变子空间 \(U\). 若是1维的，即对应了 \(1\times1\)的矩阵，若是2维，则我们可以选择一组正交基使得它是上述要求的矩阵。</p> <p>注意 \(U^\perp\) 是 \(T\) 下不变子空间而且限制在上面还是正规算子(定理9.B.2)，由归纳假设我们知道，我们已经证完了。这也就完成了本章的目标。</p> <p>读者可自行根据该定理推导实内积空间上等距同构的结构，由等距不难猜出 \(a,b\) 需要对应旋转，即 \(\sin,\cos\)。</p> <h2 id="总结">总结</h2> <p>线性代数的核心在于研究线性映射和算子的结构。本书围绕这一核心展开，对多种情况进行了讨论，发现总是可以在某些限制条件下找到某组基分解简化算子结构，使其矩阵表示有更多的0。最后让我们通过下表回顾一下我们走过的定理，言尽于此…</p> <table> <thead> <tr> <th>空间</th> <th>数域</th> <th>条件</th> <th>定理</th> <th>结论</th> </tr> </thead> <tbody> <tr> <td>向量空间</td> <td>/</td> <td>足够特征向量</td> <td>5.C.1</td> <td>对角矩阵</td> </tr> <tr> <td>内积空间</td> <td>\(C\)</td> <td>正规算子</td> <td>复谱定理</td> <td>对角矩阵</td> </tr> <tr> <td>内积空间</td> <td>\(R\)</td> <td>自伴算子</td> <td>实谱定理</td> <td>对角矩阵</td> </tr> <tr> <td>内积空间</td> <td>/</td> <td>两组基</td> <td>奇异值分解</td> <td>对角矩阵</td> </tr> <tr> <td>向量空间</td> <td>\(C\)</td> <td>/</td> <td>8.B.1, 8.D.1</td> <td>约当型</td> </tr> <tr> <td>内积空间</td> <td>\(R\)</td> <td>正规算子</td> <td>9.B.3</td> <td>1, 2块对角矩阵</td> </tr> </tbody> </table> <hr/> <div> <center>※※※ 完结撒花！※※※</center> </div>]]></content><author><name>[&quot;詹奇&quot;]</name></author><category term="math"/><summary type="html"><![CDATA[本人在大一下就跟着卢老师学过 LinearAlgebraDoneRight 部分内容，现在快大四了基本都忘完了。不过该书优雅的架构和精巧的内容还是令我印象深刻，加上线性代数后面的内容我个人认为还是比较重要的，所以这个暑假我准备再看一遍并做些记录。本文可以看作我的拾遗，也可以当作本书我认为的重点内容和思路的回顾与整理。]]></summary></entry></feed>
