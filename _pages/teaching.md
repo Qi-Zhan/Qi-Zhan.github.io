@@ -7,6 +7,13 @@ nav: true
 nav_order: 6
 ---
 
+<!-- add css -->
+<style>
+    .list-group-item {
+      background-color: inherit;
+    }
+</style>
+
 <div class="content">
     <!-- <h3 class="mt-4">Zhejiang University</h3> -->
     <div class="card mt-3">
