@@ -1,17 +1,34 @@
 ---
 ---
 
-@misc{zhan2024ps3,
-  title         = {PS3: Precise Patch Presence Test based on Semantic Symbolic Signature},
-  author        = {Qi Zhan and Xing Hu and Zhiyang Li and Xin Xia and David Lo and Shanping Li},
-  year          = {2024},
-  eprint        = {2312.03393},
-  arxiv         = {2312.03393},
-  archiveprefix = {arXiv},
-  primaryclass  = {cs.SE},
-  preview       = {icse2024ps3.jpg},
-  pdf           = {icse2024ps3.pdf},
-  code          = {https://github.com/Qi-Zhan/ps3}
+@misc{zhan2024react,
+  title   = {PS3: Precise Patch Presence Test based on Semantic Symbolic Signature},
+  author  = {Qi Zhan and Xing Hu and Xin Xia and Shanping Li},
+  year    = {2024},
+  preview = {lattice.png},
+  pdf     = {ASE2024zq.pdf},
+  code    = {https://github.com/Qi-Zhan/React}
+}
+
+@inproceedings{ps3,
+  author      = {Zhan, Qi and Hu, Xing and Li, Zhiyang and Xia, Xin and Lo, David and Li, Shanping},
+  title       = {PS3: Precise Patch Presence Test based on Semantic Symbolic Signature},
+  year        = {2024},
+  isbn        = {9798400702174},
+  publisher   = {Association for Computing Machinery},
+  address     = {New York, NY, USA},
+  url         = {https://doi.org/10.1145/3597503.3639134},
+  doi         = {10.1145/3597503.3639134},
+  abstract    = {During software development, vulnerabilities have posed a significant threat to users. Patches are the most effective way to combat vulnerabilities. In a large-scale software system, testing the presence of a security patch in every affected binary is crucial to ensure system security. Identifying whether a binary has been patched for a known vulnerability is challenging, as there may only be small differences between patched and vulnerable versions. Existing approaches mainly focus on detecting patches that are compiled in the same compiler options. However, it is common for developers to compile programs with very different compiler options in different situations, which causes inaccuracy for existing methods. In this paper, we propose a new approach named PS3, referring to precise patch presence test based on semantic-level symbolic signature. PS3 exploits symbolic emulation to extract signatures that are stable under different compiler options. Then PS3 can precisely test the presence of the patch by comparing the signatures between the reference and the target at semantic level.To evaluate the effectiveness of our approach, we constructed a dataset consisting of 3,631 (CVE, binary) pairs of 62 recent CVEs in four C/C++ projects. The experimental results show that PS3 achieves scores of 0.82, 0.97, and 0.89 in terms of precision, recall, and F1 score, respectively. PS3 outperforms the state-of-the-art baselines by improving 33\% in terms of F1 score and remains stable in different compiler options.},
+  booktitle   = {Proceedings of the IEEE/ACM 46th International Conference on Software Engineering},
+  articlefcno = {167},
+  numpages    = {12},
+  keywords    = {patch presence test, binary analysis, software security},
+  location    = {Lisbon, Portugal},
+  series      = {ICSE '24},
+  preview     = {icse2024ps3.jpg},
+  pdf         = {icse2024ps3.pdf},
+  code        = {https://github.com/Qi-Zhan/ps3}
 }
 
 @article{survey2024,
