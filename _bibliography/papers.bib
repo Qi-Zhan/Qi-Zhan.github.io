@@ -3,10 +3,22 @@
 
 @misc{zhan2024react,
   title    = {REACT: IR-Level Patch Presence Test for Binary},
-  author   = {Qi Zhan and Xing Hu and Xin Xia and Shanping Li},
+  author   = {Zhan, Qi and Hu, Xing and Xia, Xin and Li, Shanping},
   year     = {2024},
   preview  = {lattice.png},
   pdf      = {ASE2024zq.pdf},
+  isbn = {9798400712487},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3691620.3695012},
+  doi = {10.1145/3691620.3695012},
+  abstract = {Patch presence test is critical in software security to ensure that binary files have been patched for known vulnerabilities. It is challenging due to the semantic gap between the source code and the binary, and the small and subtle nature of patches. In this paper, we propose React, the first patch presence test approach on IR-level. Based on the IR code compiled from the source code and the IR code lifted from the binary, we first extract four types of feature (return value, condition, function call, and memory store) by executing the program symbolically. Then, we refine the features from the source code and rank them. Finally, we match the features to determine the presence of a patch with an SMT solver to check the equivalence of features at the semantic level.To evaluate our approach, we compare it with state-of-the-art approaches, BinXray and PS3, on a dataset containing binaries compiled from different compilers and optimization levels. Our experimental results show that React achieves scores of 0.88, 0.98, and 0.93, in terms of precision, recall, and F1 score, respectively. React outperforms the baselines by 39\% and 12\% in terms of the F1 score, while the testing speed of our approach is 2x faster than BinXray and 100x faster than PS3. Furthermore, we conduct an ablation study to evaluate the effectiveness of each component in React, which shows that SMT solver and refinement can contribute to 16\% and 10\% improvement in terms of the F1 score, respectively.},
+  booktitle = {Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering},
+  pages = {381–392},
+  numpages = {12},
+  keywords = {patch presence test, security, program analysis},
+  location = {Sacramento, CA, USA},
+  series = {ASE '24}
   code     = {https://github.com/Qi-Zhan/React},
   selected = {true}
 }
@@ -52,6 +64,7 @@
   author    = {Tao*, Chenning and Zhan*, Qi and Hu, Xing and Xia, Xin},
   booktitle = {2022 IEEE/ACM 30th International Conference on Program Comprehension (ICPC)},
   title     = {C4: Contrastive Cross-Language Code Clone Detection},
+  abstract  = {During software development, developers introduce code clones by reusing existing code to improve programming productivity. Considering the detrimental effects on software maintenance and evolution, many techniques are proposed to detect code clones. Existing approaches are mainly used to detect clones written in the same programming language. However, it is common to develop programs with the same functionality but in different programming languages to support various platforms. In this paper, we propose a new approach named C4, referring to <u>C</u>ontrastive <u>C</u>ross-language <u>C</u>ode <u>C</u>lone detection model. It can detect cross-language clones with learned representations effectively. C4 exploits the pre-trained model CodeBERT to convert programs in different languages into high-dimensional vector representations. In addition, we fine tune the C4 model through a constrastive learning objective that can effectively recognize clone pairs and non-clone pairs. To evaluate the effectiveness of our approach, we conduct extensive experiments on the dataset proposed by CLCDSA. Experimental results show that C4 achieves scores of 0.94, 0.90, and 0.92 in terms of precision, recall and F-measure and substantially outperforms the state-of-the-art baselines.},
   year      = {2022},
   pages     = {413-424},
   keywords  = {Productivity;Computer languages;Software maintenance;Codes;Cloning;Programming;Code Clone Detection;Neural Networks;Cross-Language;Contrastive Learning},
