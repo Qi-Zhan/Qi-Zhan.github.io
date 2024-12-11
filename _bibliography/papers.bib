@@ -1,26 +1,24 @@
 ---
 ---
 
-@misc{zhan2024react,
-  title    = {REACT: IR-Level Patch Presence Test for Binary},
-  author   = {Zhan, Qi and Hu, Xing and Xia, Xin and Li, Shanping},
-  year     = {2024},
-  preview  = {lattice.png},
-  pdf      = {ASE2024zq.pdf},
-  isbn = {9798400712487},
+@inproceedings{zhan2024react,
+  title     = {REACT: IR-Level Patch Presence Test for Binary},
+  author    = {Zhan, Qi and Hu, Xing and Xia, Xin and Li, Shanping},
+  year      = {2024},
+  isbn      = {9798400712487},
   publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
-  url = {https://doi.org/10.1145/3691620.3695012},
-  doi = {10.1145/3691620.3695012},
-  abstract = {Patch presence test is critical in software security to ensure that binary files have been patched for known vulnerabilities. It is challenging due to the semantic gap between the source code and the binary, and the small and subtle nature of patches. In this paper, we propose React, the first patch presence test approach on IR-level. Based on the IR code compiled from the source code and the IR code lifted from the binary, we first extract four types of feature (return value, condition, function call, and memory store) by executing the program symbolically. Then, we refine the features from the source code and rank them. Finally, we match the features to determine the presence of a patch with an SMT solver to check the equivalence of features at the semantic level.To evaluate our approach, we compare it with state-of-the-art approaches, BinXray and PS3, on a dataset containing binaries compiled from different compilers and optimization levels. Our experimental results show that React achieves scores of 0.88, 0.98, and 0.93, in terms of precision, recall, and F1 score, respectively. React outperforms the baselines by 39\% and 12\% in terms of the F1 score, while the testing speed of our approach is 2x faster than BinXray and 100x faster than PS3. Furthermore, we conduct an ablation study to evaluate the effectiveness of each component in React, which shows that SMT solver and refinement can contribute to 16\% and 10\% improvement in terms of the F1 score, respectively.},
+  url       = {https://doi.org/10.1145/3691620.3695012},
+  doi       = {10.1145/3691620.3695012},
+  abstract  = {Patch presence test is critical in software security to ensure that binary files have been patched for known vulnerabilities. It is challenging due to the semantic gap between the source code and the binary, and the small and subtle nature of patches. In this paper, we propose React, the first patch presence test approach on IR-level. Based on the IR code compiled from the source code and the IR code lifted from the binary, we first extract four types of feature (return value, condition, function call, and memory store) by executing the program symbolically. Then, we refine the features from the source code and rank them. Finally, we match the features to determine the presence of a patch with an SMT solver to check the equivalence of features at the semantic level.To evaluate our approach, we compare it with state-of-the-art approaches, BinXray and PS3, on a dataset containing binaries compiled from different compilers and optimization levels. Our experimental results show that React achieves scores of 0.88, 0.98, and 0.93, in terms of precision, recall, and F1 score, respectively. React outperforms the baselines by 39\% and 12\% in terms of the F1 score, while the testing speed of our approach is 2x faster than BinXray and 100x faster than PS3. Furthermore, we conduct an ablation study to evaluate the effectiveness of each component in React, which shows that SMT solver and refinement can contribute to 16\% and 10\% improvement in terms of the F1 score, respectively.},
   booktitle = {Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering},
-  pages = {381–392},
-  numpages = {12},
-  keywords = {patch presence test, security, program analysis},
-  location = {Sacramento, CA, USA},
-  series = {ASE '24}
-  code     = {https://github.com/Qi-Zhan/React},
-  selected = {true}
+  numpages  = {12},
+  keywords  = {patch presence test, security, program analysis},
+  location  = {Sacramento, CA, USA},
+  series    = {ASE '24},
+  preview   = {lattice.png},
+  code      = {https://github.com/Qi-Zhan/React},
+  pdf       = {ASE2024zq.pdf},
+  selected  = {true}
 }
 
 @inproceedings{ps3,
@@ -47,6 +45,7 @@
 @article{survey2024,
   author    = {Zhan, Qi and  Pan, Shengyi and Hu, Xing and Bao, Lingfeng and Xia, Xin},
   title     = {Survey on Vulnerability Awareness of Open Source Software},
+  abstract  = {As the modern software scale expands, software vulnerabilities bring a great threat to the security and reliability of computer systems and software, causing huge damage to people’s production and life. In recent years, as open source software (OSS) is widely used, the vulnerability issues of OSS have received much attention. Vulnerability awareness techniques can effectively help OSS users to identify vulnerabilities at the early stage for timely defense. Different from the vulnerability detection techniques for traditional software, the transparency and cooperativity of OSS vulnerabilities bring great challenges to vulnerability awareness. Therefore, various techniques are proposed by scholars and developers to perceive potential vulnerabilities and risks in OSS from the code and open source community, so as to find OSS vulnerabilities as early as possible and reduce the losses caused by the vulnerabilities. To boost the development of OSS vulnerability awareness techniques, this study conducts a systematic literature review of existing research works. The study selects 45 high-level papers on open source vulnerability awareness techniques, including code-based, open source community discussion-based, and patch-based vulnerability awareness techniques. The results of these papers are systematically summarized. Especially, this study proposes the category of techniques based on the OSS vulnerability life cycle for the first time according to the most recent publications, which supplements and improves the existing taxonomy of vulnerability awareness techniques. Finally, the study discusses the challenges in the field and predicts future research direction.},
   journal   = {软件学报},
   volume    = {35},
   number    = {1},
