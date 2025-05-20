@@ -78,6 +78,9 @@ nav_order: 3
         <li> GPT-2 inference engine in Rust.
           <a href="https://github.com/Qi-Zhan/gpt.rs"><i class="fa-brands fa-github gh-icon"></i></a>
         </li>
+        <li> Simple Debugger in Rust.
+          <a href="https://github.com/Qi-Zhan/sdb"><i class="fa-brands fa-github gh-icon"></i></a>
+        </li>
       </ul>
     </div>
   </div>
